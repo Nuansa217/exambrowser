@@ -4,7 +4,7 @@
   "description": "Aplikasi ujian dengan kontrol akses peserta dan penanganan pelanggaran: peserta dikeluar dari sesi lalu kembali memakai token pengawas.",
   "lang": "id",
   "dir": "ltr",
-  "start_url": "nuansa217.github.io/exambrowser/Exambrowser.html",
+  "start_url": "Exambrowser.html",
   "scope": "./",
   "id": "exambrowser-uji-2026",
   "display": "standalone",

@@ -199,7 +199,10 @@ button,input,textarea{font:inherit; color:inherit}
 .banner .tx{flex:1; min-width:0}
 .banner h4{margin:0 0 var(--xxs); font-size:14px; font-weight:600}
 .banner p{margin:0; font-size:14px; color:var(--text-secondary)}
-.banner .act{margin-top:var(--sm); display:flex; justify-content:flex-end}
+.banner .act{margin-top:var(--sm); display:flex; justify-content:flex-end; gap:var(--sm); flex-wrap:wrap}
+.import-issues{margin:var(--xs) 0 0; padding-left:18px; font-size:13px; color:var(--text-secondary)}
+.import-issues li{margin-bottom:2px}
+.import-issues li::marker{color:var(--warning)}
 .banner.success{background:var(--success-surface); border-color:rgba(30,122,69,.35)}
 .banner.success .ic,.banner.success h4{color:var(--success)}
 .banner.warning{background:var(--warning-surface); border-color:rgba(154,100,0,.35)}
@@ -398,7 +401,7 @@ body{padding-bottom:34px}
              stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
         </svg>
-        Buat / Ubah Soal
+        Impor / Library Soal
       </button>
     </div>
   </div>
@@ -437,7 +440,7 @@ body{padding-bottom:34px}
              stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
         </svg>
-        Buat / Ubah Soal
+        Impor / Library Soal
       </button>
 
       <div class="card md info" style="background:var(--info-surface); border-color:rgba(27,95,168,.3)">
@@ -543,8 +546,11 @@ body{padding-bottom:34px}
 
     <div id="e-body" style="flex:1; overflow-y:auto"></div>
 
+    <div class="question-status" id="e-question-status" aria-label="Progres soal"></div>
+
     <div class="exambar">
       <button class="btn btn-secondary" id="btn-prev">Sebelumnya</button>
+      <button class="btn btn-secondary" id="btn-mark-review" aria-pressed="false">Tandai Ragu-ragu</button>
       <button class="btn btn-primary" id="btn-next">Berikutnya</button>
     </div>
   </div>
@@ -649,6 +655,15 @@ body{padding-bottom:34px}
         </div>
       </div>
 
+      <div class="banner success" id="d-submit" hidden>
+        <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+        <div class="tx">
+          <h4>Status kiriman</h4>
+          <p>—</p>
+          <div class="act"><button class="btn btn-secondary" id="btn-retry-send" hidden>Kirim Ulang</button></div>
+        </div>
+      </div>
+
       <div class="banner success">
         <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
         <div class="tx">
@@ -663,10 +678,8 @@ body{padding-bottom:34px}
   </div>
 </section>
 
-
-/* =========================================================================
-   PEMBUAT SOAL
-   ========================================================================= */
+<style>
+/* --- library impor soal --- */
 .bank-item{
   background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius-lg); overflow:hidden;
@@ -699,7 +712,6 @@ body{padding-bottom:34px}
 .iconbtn.danger:hover{background:var(--danger-surface); color:var(--danger); border-color:rgba(179,38,30,.4)}
 .iconbtn svg{width:16px; height:16px}
 
-/* form editor */
 .form-grid{display:flex; flex-direction:column; gap:var(--md)}
 .row2{display:grid; grid-template-columns:1fr 1fr; gap:var(--sm)}
 .opt-row{display:flex; gap:var(--xs); align-items:center}
@@ -715,6 +727,55 @@ body{padding-bottom:34px}
 .hint{font-size:12px; color:var(--text-secondary); margin:0}
 .toolbar{display:flex; flex-wrap:wrap; gap:var(--xs)}
 .toolbar .btn{width:auto; min-height:var(--tap); padding:0 var(--sm); font-size:14px}
+
+/* --- status tiap soal: hijau terjawab, oranye ragu, putih belum --- */
+.question-status{
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  padding:10px max(16px, calc((100% - 760px)/2));
+  background:var(--surface); border-top:1px solid var(--divider);
+}
+.question-status .qs-btn{
+  width:34px; height:34px; border-radius:50%; cursor:pointer;
+  border:1px solid var(--border-strong); background:var(--surface);
+  color:var(--text-secondary); font-size:13px; font-weight:600;
+  transition:background .12s, color .12s, border-color .12s;
+}
+.question-status .qs-btn:hover:not(:disabled){border-color:var(--primary)}
+.question-status .qs-btn:disabled{opacity:.55; cursor:not-allowed}
+.question-status .qs-btn.is-answered{
+  background:var(--success); border-color:var(--success); color:#fff;
+}
+.question-status .qs-btn.is-review{
+  background:#D98200; border-color:#D98200; color:#fff;
+}
+.question-status .qs-btn.is-answered.is-review{
+  background:linear-gradient(135deg, var(--success) 50%, #D98200 50%);
+  border-color:#8a7a3d;
+}
+.question-status .qs-btn.is-current{
+  outline:3px solid rgba(14,124,134,.35); outline-offset:2px;
+}
+.question-status .qs-btn:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+.question-status .qs-legend{
+  margin-left:auto; display:flex; flex-wrap:wrap; gap:12px;
+  font-size:11.5px; color:var(--text-secondary); align-items:center;
+}
+.question-status .qs-legend span{display:inline-flex; align-items:center; gap:5px}
+.question-status .qs-legend .dot{
+  width:11px; height:11px; border-radius:50%; display:inline-block;
+  border:1px solid var(--border-strong);
+}
+.question-status .qs-legend .dot.answered{background:var(--success); border-color:var(--success)}
+.question-status .qs-legend .dot.review{background:#D98200; border-color:#D98200}
+.question-status .qs-legend .dot.empty{background:var(--surface)}
+@media (max-width:640px){
+  .question-status{gap:6px; padding:8px 12px}
+  .question-status .qs-btn{width:32px; height:32px}
+  .question-status .qs-legend{width:100%; margin-left:0; gap:10px}
+}
+#btn-mark-review.is-on{
+  background:#FFF2D9; border-color:#D98200; color:#9A5A00; font-weight:600;
+}
 .empty{
   border:1.5px dashed var(--border-strong); border-radius:var(--radius-lg);
   padding:var(--xl) var(--lg); text-align:center; background:var(--surface);
@@ -722,9 +783,10 @@ body{padding-bottom:34px}
 @media (max-width:520px){
   .row2{grid-template-columns:1fr}
 }
+</style>
 
 <!-- =====================================================================
-     7. PEMBUAT SOAL
+     7. IMPOR SOAL
      ===================================================================== -->
 <section class="screen has-appbar" id="s-bank">
   <header class="appbar">
@@ -732,7 +794,7 @@ body{padding-bottom:34px}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     </button>
-    <h1>Pembuat Soal</h1>
+    <h1>Impor Soal</h1>
     <span class="chip neutral dense" id="bank-count">0 soal</span>
   </header>
 
@@ -741,7 +803,7 @@ body{padding-bottom:34px}
 
       <!-- ---------------- Informasi sesi ---------------- -->
       <div class="card" id="bank-info">
-        <div class="h5" style="margin-bottom:var(--sm)">Informasi Ujian</div>
+        <div class="h5" style="margin-bottom:var(--sm)">Pengaturan Ujian</div>
         <div class="form-grid">
           <div class="row2">
             <div class="field">
@@ -760,107 +822,82 @@ body{padding-bottom:34px}
             <label class="label" for="bi-title">Judul Ujian</label>
             <input class="input" id="bi-title" maxlength="90">
           </div>
+          <div class="field">
+            <label class="label" for="bi-subject">Mata Pelajaran</label>
+            <input class="input" id="bi-subject" maxlength="50" placeholder="Opsional">
+          </div>
           <div class="row2">
             <div class="field">
-              <label class="label" for="bi-subject">Mata Pelajaran</label>
-              <input class="input" id="bi-subject" maxlength="50" placeholder="Opsional">
+              <label class="label" for="bi-backend-url">URL Backend GAS</label>
+              <input class="input" id="bi-backend-url" type="url" inputmode="url"
+                     placeholder="https://script.google.com/macros/s/.../exec" autocomplete="url">
+              <p class="hint">Kosong = mode demo lokal. Isi untuk menerima hasil siswa di Google Sheets.</p>
             </div>
             <div class="field">
-              <label class="label" for="bi-identity">Kunci jawaban otomatis</label>
-              <input class="input" id="bi-identity" value="Pengawas" disabled>
-              <p class="hint">Soal pilihan ganda &amp; isian dinilai otomatis.</p>
+              <label class="label" for="bi-backend-pin">PIN Pengawas GAS</label>
+              <input class="input" id="bi-backend-pin" type="password" inputmode="numeric"
+                     autocomplete="new-password" placeholder="PIN hasil setup">
+              <p class="hint">Untuk pendaftaran library &amp; dashboard pengawas. Jangan dibagikan ke siswa.</p>
             </div>
           </div>
+          <div class="field">
+            <label class="label" for="bi-identity">Kunci jawaban otomatis</label>
+            <input class="input" id="bi-identity" value="Pengawas" disabled>
+            <p class="hint">Soal pilihan ganda &amp; isian dinilai otomatis.</p>
+          </div>
         </div>
       </div>
 
-      <!-- ---------------- Alat ---------------- -->
+      <!-- ---------------- Impor & pendaftaran ---------------- -->
       <div class="toolbar">
-        <button class="btn btn-primary" id="btn-add-q">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          Tambah Soal
-        </button>
-        <button class="btn btn-secondary" id="btn-bank-save">Simpan Semua</button>
-        <button class="btn btn-secondary" id="btn-bank-export">Ekspor</button>
-        <button class="btn btn-secondary" id="btn-bank-import">Impor</button>
-        <button class="btn btn-secondary" id="btn-bank-demo">Isi Contoh</button>
-        <input type="file" id="bank-file" accept="application/json,.json" hidden>
+        <button class="btn btn-secondary" id="btn-doc-import">Impor Soal dari PDF / DOCX</button>
+        <button class="btn btn-primary" id="btn-register-backend" type="button">Daftarkan Library &amp; Kunci ke Backend</button>
+        <input type="file" id="doc-file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
       </div>
-
-      <!-- ---------------- Form editor (sembunyi secara bawaan) ---------------- -->
-      <div class="card" id="bank-form" hidden>
-        <div style="display:flex; align-items:center; gap:var(--sm); margin-bottom:var(--md)">
-          <div class="h5" id="bf-title" style="flex:1">Soal Baru</div>
-          <button class="iconbtn" id="bf-close" aria-label="Tutup">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-          </button>
-        </div>
-
-        <div class="form-grid">
-          <div class="field">
-            <label class="label" for="bf-type">Jenis Soal</label>
-            <select class="input" id="bf-type">
-              <option value="single_choice">Pilihan tunggal (dinilai otomatis)</option>
-              <option value="multiple_choice">Pilihan ganda (dinilai otomatis)</option>
-              <option value="short_text">Jawaban singkat (dinilai otomatis)</option>
-              <option value="essay">Uraian (dinilai pengawas)</option>
-            </select>
+      <p class="small" id="backend-save-note" hidden></p>
+      <p class="hint">Satu-satunya cara menambah soal. Berkas diproses di perangkat ini;
+        soal bernomor dikenali dari dokumen, lalu kunci dipasangkan dari bagian
+        <b>Kunci Jawaban</b> (satu nomor per baris, misalnya 1.A).</p>
+      <p class="hint">Tekan <b>Daftarkan Library &amp; Kunci ke Backend</b> setelah impor
+        dan pengaturan diisi, agar server menerima serta menilai kiriman siswa.</p>
+      <div class="banner warning" id="doc-import-review" hidden aria-live="polite">
+        <div class="ic" aria-hidden="true">!</div>
+        <div class="tx">
+          <h4 id="doc-import-title">Tinjau hasil impor</h4>
+          <p id="doc-import-summary"></p>
+          <ul class="import-issues" id="doc-import-issues"></ul>
+          <div id="doc-import-mark">
+            <p class="hint" style="margin-top:var(--sm)">
+              Klik kotak di kanan pilihan untuk menandai kunci. Pilihan tunggal
+              hanya boleh satu kunci.
+            </p>
+            <div class="stack gap-xs" id="doc-mark-list"></div>
           </div>
-
-          <div class="field">
-            <label class="label" for="bf-prompt">Pertanyaan</label>
-            <textarea class="input" id="bf-prompt" style="min-height:96px" maxlength="2000"></textarea>
-          </div>
-
-          <div class="field">
-            <label class="label" for="bf-context">Konteks / bacaan (opsional)</label>
-            <input class="input" id="bf-context" maxlength="500" placeholder="Misal: Baca paragraf berikut…">
-          </div>
-
-          <!-- pilihan -->
-          <div class="field" id="bf-options-wrap">
-            <label class="label">Pilihan Jawaban</label>
-            <p class="hint">Tekan kotak di kanan untuk menandai kunci jawaban.</p>
-            <div class="stack gap-xs" id="bf-options"></div>
-            <button class="btn btn-secondary" id="bf-add-opt" style="margin-top:var(--xs)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              Tambah Pilihan
-            </button>
-          </div>
-
-          <!-- jawaban teks -->
-          <div class="field" id="bf-answer-wrap" hidden>
-            <label class="label" for="bf-answer">Kunci Jawaban</label>
-            <input class="input" id="bf-answer" maxlength="300"
-                   placeholder="Dinilai otomatis (abaikan besar-kecil huruf)">
-            <p class="hint" id="bf-answer-hint">Peserta dianggap benar bila jawabannya cocok dengan kunci ini.</p>
-          </div>
-
-          <div class="field">
-            <label class="label" for="bf-score">Bobot Skor</label>
-            <input class="input" id="bf-score" type="number" min="1" max="100" step="1" inputmode="numeric">
-          </div>
-
-          <p class="field-error" id="bf-error" hidden></p>
-
-          <div class="btn-row">
-            <button class="btn btn-secondary" id="bf-cancel">Batal</button>
-            <button class="btn btn-primary" id="bf-save">Simpan Soal</button>
+          <div class="act">
+            <label class="hint" style="display:flex; align-items:center; gap:8px; margin-right:auto">
+              <input type="checkbox" id="doc-import-replace">
+              Gantikan seluruh isi library
+            </label>
+            <button class="btn btn-secondary" id="doc-import-cancel">Batal</button>
+            <button class="btn btn-primary" id="doc-import-accept">Tambahkan ke Library</button>
           </div>
         </div>
       </div>
 
-      <!-- ---------------- Daftar soal ---------------- -->
+      <!-- ---------------- Daftar soal hanya-baca ---------------- -->
+      <div class="banner warning" id="bank-key-warning" hidden>
+        <div class="ic" aria-hidden="true">!</div>
+        <div class="tx">
+          <h4>Kunci belum diverifikasi</h4>
+          <p id="bank-key-warning-text"></p>
+        </div>
+      </div>
       <div class="stack gap-sm" id="bank-list"></div>
 
       <div class="empty" id="bank-empty">
-        <div class="h4">Belum ada soal</div>
+        <div class="h4">Library soal masih kosong</div>
         <p class="body muted" style="margin-top:var(--xs)">
-          Tekan <b>Tambah Soal</b> untuk menulis sendiri, atau
-          <b>Isi Contoh</b> untuk memuat empat soal contoh.
+          Pilih <b>Impor Soal dari PDF / DOCX</b> untuk menambahkan soal.
         </p>
       </div>
 
@@ -1172,45 +1209,100 @@ function safeKey(k){ return String(k).replace(/[^A-Za-z0-9_.-]/g, '_'); }
    KLIEN API  (meniru ApiClient + MockApi)
    -------------------------------------------------------------------------- */
 const ApiClient = {
-  async _timeout(ms, signal){
-    return new Promise((_, rej) => setTimeout(
-      () => rej(Object.assign(new Error('timeout'), {kind:'timeout'})), ms));
+  _jsonp(action, params = {}){
+    const base = backendUrl();
+    if (!base) return Promise.reject(Object.assign(new Error('URL backend GAS belum diisi di menu Impor / Library Soal.'), {kind:'config', retryable:false}));
+    return new Promise((resolve, reject) => {
+      const cb = '__gas_' + _uuid().replace(/-/g,'');
+      const callbackName = 'window.' + cb;
+      const script = document.createElement('script');
+      const query = new URLSearchParams({action, cb, ...params});
+      const timer = setTimeout(() => done(new Error('Backend tidak merespons. Periksa koneksi dan URL GAS.')), CONFIG.apiTimeoutMs);
+      function done(err, value){
+        clearTimeout(timer);
+        try{ delete window[cb]; }catch(_){ window[cb] = undefined; }
+        script.remove();
+        if (err) reject(err); else resolve(value);
+      }
+      window[cb] = result => {
+        if (!result || result.success !== true){
+          const err = new Error(result?.message || 'Permintaan backend ditolak.');
+          err.kind = 'rejected'; err.retryable = false;
+          done(err); return;
+        }
+        done(null, result.data);
+      };
+      script.onerror = () => done(Object.assign(new Error('Tidak dapat mengakses backend. Pastikan URL GAS merupakan deployment web app yang aktif.'), {kind:'network', retryable:true}));
+      script.src = base + (base.includes('?') ? '&' : '?') + query.toString();
+      document.head.appendChild(script);
+    });
   },
 
-  /** Mock meniru endpoint /exam-codes/validate */
-  async validateExamCode(examCode){
-    const code = examCode.toUpperCase();
-    const call = async () => {
-      if (code === MOCK.erroringCode){
-        const err = new Error('Server ujian sedang bermasalah.');
-        err.kind = 'server'; err.code = 'service_unavailable'; err.status = 503;
-        err.retryable = true; throw err;
-      }
-      // Kode yang diterima hanya kode dari bank pengguna. Setelah pengawas
-      // mengganti kode, kode lama harus ikut berhenti berlaku — bukan tetap
-      // diterima berdasarkan bawaan pabrik.
-      const bankCode = (typeof Bank !== 'undefined' && Bank.data)
-        ? Bank.data.code : DEMO_BANK.code;
-      if (code !== bankCode){
-        const err = new Error('Kode ujian tidak ditemukan atau sudah tidak berlaku.');
-        err.kind = 'rejected'; err.code = 'exam_code_not_found'; err.status = 404;
-        err.retryable = false; throw err;
-      }
-      return mockSessionPayload(code);
-    };
-
-    let attempt = 0;
-    for (;;){
-      try{
-        return await Promise.race([call(), this._timeout(CONFIG.apiTimeoutMs)]);
-      } catch(e){
-        const retryable = e.retryable === true || e.kind === 'timeout';
-        if (!retryable || attempt >= CONFIG.maxRetries) throw e;
-        await new Promise(r => setTimeout(
-          r, CONFIG.baseBackoffMs * Math.pow(2, attempt) + Math.floor(Math.random()*120)));
-        attempt++;
-      }
+  async _post(payload){
+    const base = backendUrl();
+    if (!base) throw Object.assign(new Error('URL backend GAS belum diisi di menu Impor / Library Soal.'), {kind:'config', retryable:false});
+    const form = document.createElement('form');
+    form.method = 'POST'; form.action = base; form.target = 'gas-submit-frame'; form.acceptCharset = 'UTF-8';
+    form.style.display = 'none';
+    const input = document.createElement('input');
+    input.name = 'payload'; input.value = JSON.stringify(payload);
+    form.appendChild(input);
+    let frame = document.getElementById('gas-submit-frame');
+    if (!frame){
+      frame = document.createElement('iframe'); frame.name = 'gas-submit-frame'; frame.id = 'gas-submit-frame';
+      frame.style.display = 'none'; document.body.appendChild(frame);
     }
+    document.body.appendChild(form);
+    await new Promise((resolve, reject) => {
+      let done = false;
+      const finish = (err) => { if(done) return; done = true; clearTimeout(timer); form.remove(); err ? reject(err) : resolve(); };
+      const timer = setTimeout(() => finish(Object.assign(new Error('Pengiriman belum dapat dipastikan. Akan dicek ulang.'), {kind:'timeout', retryable:true})), CONFIG.apiTimeoutMs);
+      frame.onload = () => { if (frame.dataset.submitting === '1') { frame.dataset.submitting='0'; finish(null); } };
+      frame.dataset.submitting = '1';
+      try { form.submit(); } catch(e){ finish(e); }
+    });
+    // POST cross-origin tidak dapat dibaca dari frame. Konfirmasi penyimpanan
+    // kiriman jawaban dengan endpoint status JSONP yang aman dibaca dari file://.
+    if (payload.action === 'submit'){
+      const status = await this._jsonp('status', {submissionId:payload.submissionId});
+      if (!status.received) throw Object.assign(new Error('Server belum mengonfirmasi penyimpanan. Kiriman akan dicoba ulang.'), {kind:'timeout', retryable:true});
+      return status;
+    }
+    return {ok:true};
+  },
+
+  async _registerExam(){
+    if (!backendUrl()) return {registered:false, local:true};
+    const pinEl = document.getElementById('bi-backend-pin');
+    const pin = (pinEl && pinEl.value.trim()) || _backendPin || '';
+    if (!pin) throw Object.assign(new Error('Isi PIN pengawas GAS terlebih dahulu.'), {kind:'config', retryable:false});
+    _backendPin = pin;
+    const payload = {action:'register', bank:Bank.data, submissionId:'reg_' + _uuid(), pin};
+    await this._post(payload);
+    const check = await this._jsonp('examStatus', {code:Bank.data.code});
+    if (!check.registered){
+      throw Object.assign(new Error('Backend belum mengonfirmasi pendaftaran ujian. Coba lagi.'), {kind:'timeout', retryable:true});
+    }
+    return {registered:true};
+  },
+
+  async validateExamCode(examCode){
+    const code = String(examCode).toUpperCase();
+    if (code === MOCK.erroringCode){
+      const err = new Error('Server ujian sedang bermasalah.');
+      err.kind = 'server'; err.code = 'service_unavailable'; err.status = 503;
+      err.retryable = true; throw err;
+    }
+    if (backendUrl()){
+      const info = await this._jsonp('validateCode', {code});
+      return backendSessionPayload(code, info);
+    }
+    const bankCode = Bank.data ? Bank.data.code : DEMO_BANK.code;
+    if (code !== bankCode){
+      const err = new Error('Kode ujian tidak ditemukan atau sudah tidak berlaku.');
+      err.kind = 'rejected'; err.code = 'exam_code_not_found'; err.status = 404; err.retryable = false; throw err;
+    }
+    return mockSessionPayload(code);
   },
 
   async validateReentryToken(token){
@@ -1218,17 +1310,72 @@ const ApiClient = {
     if (t === MOCK.validReentryToken) return {valid:true, expiresAt:null};
     return {valid:false, reason:'Token tidak dikenal atau sudah kedaluwarsa.'};
   },
-
-  async requestReentry(){
-    return {requestId:'req_' + _uuid().slice(0,8), createdAt:new Date().toISOString()};
-  },
-
+  async requestReentry(){ return {requestId:'req_' + _uuid().slice(0,8), createdAt:new Date().toISOString()}; },
   async submitProgress(){ return {accepted:true}; },
   async reportViolations(events){ return {recorded:events.length, dropped:0}; },
-  async completeSession(){ return {completed:true, submittedAt:new Date().toISOString()}; },
+  async completeSession(){
+    if (!backendUrl()) return {completed:true, submittedAt:new Date().toISOString(), local:true};
+    const payload = buildSubmissionPayload();
+    return this._post(payload);
+  },
 };
 
-function mockSessionPayload(code){
+function buildSubmissionPayload(){
+  if (!App.session || !App.progress) return null;
+  const answers = Object.values(App.progress.answers || {}).map((a, i) => ({
+    questionId:a.questionId || App.questions[i]?.id || '',
+    questionIndex:Number(a.index) || (i + 1),
+    type:App.questions.find(q => q.id === a.questionId)?.type || 'single_choice',
+    prompt:App.questions.find(q => q.id === a.questionId)?.prompt || '',
+    optionIds:Array.isArray(a.optionIds) ? a.optionIds : [],
+    text:String(a.text || ''),
+    maxScore:App.questions.find(q => q.id === a.questionId)?.maxScore || 1,
+  }));
+  return {
+    action:'submit',
+    submissionId:(App.progress.submissionId || (App.progress.submissionId = _uuid())),
+    sessionId:App.session.sessionId,
+    code:App.session.code,
+    totalQuestions:App.session.totalQuestions,
+    startedAt:App.progress.startedAt,
+    submittedAt:new Date().toISOString(),
+    violations:App.totalViolations,
+    reviewFlags:Object.keys(App.progress.review || {}).length,
+    participant:{
+      name:App.participant?.displayName || '',
+      identity:App.participant?.identity || '',
+      classLabel:App.participant?.classLabel || '',
+    },
+    answers,
+  };
+}
+
+function backendSessionPayload(code, info){
+  const now = new Date();
+  const minutes = clamp(Number(info.durationMinutes) || 90, 1, 480);
+  const ends = new Date(now.getTime() + minutes * 60 * 1000);
+  const questions = Array.isArray(info.questions) ? info.questions : [];
+  return {
+    session: {
+      sessionId:'ses_' + _uuid().slice(0, 12), code,
+      title:info.title || 'Ujian',
+      subjectLabel:info.subject || null,
+      durationSeconds: minutes * 60,
+      totalQuestions: questions.length,
+      startedAt: now.toISOString(), endsAt: ends.toISOString(),
+      allowQuestionNavigation:true, shuffleQuestions:false,
+    },
+    participant: {
+      id:'part_mock_1', displayName: App.loginIdentity || 'Peserta Demo',
+      identity: App.loginIdentity || '',
+      classLabel:'', numberInClass:null,
+    },
+    questions,
+    // Kunci tidak pernah dikirim dari backend.
+  };
+}
+
+function mockSessionPayload(code, options = {}){
   // Soal & metadata diambil dari bank yang dibuat pengguna bila ada,
   // kalau tidak memakai contoh bawaan.
   const bank = (typeof Bank !== 'undefined' && Bank.data) ? Bank.data : DEMO_BANK;
@@ -1247,8 +1394,10 @@ function mockSessionPayload(code){
       allowQuestionNavigation: true, shuffleQuestions: false,
     },
     participant: {
-      id: 'part_mock_1', displayName: 'Peserta Demo',
-      classLabel: 'XI IPA 2', numberInClass: 12,
+      id: 'part_mock_1', displayName: App.loginIdentity || 'Peserta Demo',
+      identity: App.loginIdentity || '',
+      classLabel: '',
+      numberInClass: null,
     },
     questions: bank.questions.map(q => ({
       id: q.id,
@@ -1258,10 +1407,10 @@ function mockSessionPayload(code){
       prompt: q.prompt,
       context: q.context || undefined,
       options: q.options.map(o => ({id:o.id, label:o.label})),
-      // Kunci jawaban ikut dikirim agar layar hasil dapat menilai.
-      answerKey: q.type === 'single_choice' || q.type === 'multiple_choice'
+      // Kunci tidak pernah dikirim ke browser siswa jika backend aktif.
+      ...(!options.omitAnswerKey ? {answerKey: q.type === 'single_choice' || q.type === 'multiple_choice'
         ? q.options.filter(o => o.key).map(o => o.id)
-        : (q.type === 'short_text' ? q.answer.trim().toLowerCase() : null),
+        : (q.type === 'short_text' ? q.answer.trim().toLowerCase() : null)} : {}),
     })),
   };
 }
@@ -1350,7 +1499,6 @@ const App = {
   _allowed(route){
     switch(route){
       case 'login': return true;
-      // Pembuat soal terbuka dari layar mana pun; tidak memerlukan sesi.
       case 'bank': return true;
       case 'code': return this.phase === Phase.IDLE
                           || this.phase === Phase.INVALID
@@ -1561,6 +1709,81 @@ const App = {
       const el = document.getElementById('e-violation-count');
       if (el) el.textContent = String(this.totalViolations);
     }
+
+    this._renderQuestionStatus();
+  },
+
+  /* ---- status per soal: hijau = terjawab, oranye = ragu-ragu ---- */
+  _answers(){ return (this.progress && this.progress.answers) || {}; },
+  _reviews(){
+    if (!this.progress) return {};
+    if (!this.progress.review) this.progress.review = {};
+    return this.progress.review;
+  },
+  _isAnswered(qid){
+    const a = this._answers()[qid];
+    if (!a) return false;
+    return (Array.isArray(a.optionIds) && a.optionIds.length > 0) ||
+           (typeof a.text === 'string' && a.text.trim().length > 0);
+  },
+
+  _renderQuestionStatus(){
+    const host = document.getElementById('e-question-status');
+    if (!host) return;
+    const answers = this._answers();
+    const review = this._reviews();
+
+    host.innerHTML = this.questions.map((q, i) => {
+      const cls = ['qs-btn'];
+      if (this._isAnswered(q.id)) cls.push('is-answered');
+      if (review[q.id]) cls.push('is-review');
+      if (i === this.current) cls.push('is-current');
+      const notes = [
+        this._isAnswered(q.id) ? 'sudah dijawab' : 'belum dijawab',
+        review[q.id] ? 'ditandai ragu-ragu' : '',
+      ].filter(Boolean).join(', ');
+      return `<button type="button" class="${cls.join(' ')}" data-qi="${i}"
+        aria-current="${i === this.current}" aria-label="Soal ${i + 1}, ${notes}">${i + 1}</button>`;
+    }).join('') +
+    `<span class="qs-legend">
+       <span><i class="dot answered"></i>Hijau: sudah dijawab</span>
+       <span><i class="dot review"></i>Oranye: ragu-ragu</span>
+       <span><i class="dot empty"></i>Putih: belum dijawab</span>
+     </span>`;
+
+    host.querySelectorAll('[data-qi]').forEach(btn => {
+      btn.addEventListener('click', () => this.goTo(Number(btn.dataset.qi)));
+    });
+    this._syncReviewButton();
+  },
+
+  _syncReviewButton(){
+    const btn = document.getElementById('btn-mark-review');
+    if (!btn) return;
+    const blocked = blocksAnswering(this.phase);
+    const q = this.questions[this.current];
+    const on = !!(q && this._reviews()[q.id]);
+    btn.disabled = blocked;
+    btn.classList.toggle('is-on', on);
+    btn.setAttribute('aria-pressed', String(on));
+    btn.textContent = on ? 'Sudah ditandai ragu' : 'Tandai Ragu-ragu';
+  },
+
+  toggleReview(){
+    const q = this.questions[this.current];
+    if (!q || blocksAnswering(this.phase)) return;
+    const review = this._reviews();
+    const on = !review[q.id];
+    if (on) review[q.id] = 1; else delete review[q.id];
+
+    this.progress.revision = (this.progress.revision || 0) + 1;
+    this.progress.lastSavedAt = new Date().toISOString();
+    this._renderQuestionStatus();
+    this.persistProgress();
+    EventLog.info('session', 'question_flagged', {
+      sessionId: session(), data:{index: this.current + 1, flag: on ? 'ragu' : 'jelas'},
+    });
+    toast(on ? `Soal ${this.current + 1} ditandai ragu-ragu.` : `Tanda ragu-ragu pada soal ${this.current + 1} dihapus.`);
   },
 
   _renderExam(){
@@ -1672,21 +1895,90 @@ const App = {
   async completeSession(){
     if (isTerminal(this.phase)) return;
     this._stopAutosave();
-    try{
-      await ApiClient.completeSession();
+    this.submitResult = {state:'sending', label:'Mengirim jawaban ke server…'};
+    this._renderDone();
+
+    const payload = buildSubmissionPayload();
+    if (!payload){
+      // Tanpa payload (mis. sesi demo) tetap boleh diselesaikan.
+      this.submitResult = {state:'local', label:'Sesi selesai tanpa kiriman ke server.'};
+      this._renderDone();
       EventLog.info('session', 'session_completed', {sessionId:session(), data:{
-        answered:this._answeredCount(), total:this.session.totalQuestions,
+        answered:this._answeredCount(), total:this.session?.totalQuestions || 0,
       }});
-    } catch(e){
-      EventLog.error('network', 'session_complete_upload_failed',
-        {sessionId:session(), errorCode:e.code || '-', data:{kind:e.kind || '-'}});
+    } else if (!backendUrl()){
+      this.submitResult = {state:'local', label:'Tidak ada URL backend. Hasil tersimpan di perangkat ini saja.'};
+      this._renderDone();
+      EventLog.warn('network', 'submission_skipped_no_backend', {sessionId:session()});
+    } else {
+      try{
+        await ApiClient.completeSession();
+        this.submitResult = {state:'sent', label:'Jawaban terkirim dan diterima server.'};
+        EventLog.info('session', 'session_completed', {sessionId:session(), data:{
+          answered:this._answeredCount(), total:this.session.totalQuestions,
+          submissionId:payload.submissionId, sent:true,
+        }});
+      } catch(e){
+        // Simpan antrean agar bisa dikirim ulang otomatis saat online.
+        this.submitResult = {state:'queued', label:'Koneksi bermasalah. Jawaban di antrekan dan akan dikirim ulang otomatis.'};
+        await this._queueSubmission(payload);
+        EventLog.error('network', 'session_complete_upload_failed', {
+          sessionId:session(), errorCode:e.code || '-', data:{kind:e.kind || '-'}});
+      }
     }
+    this._renderDone();
+
     this.fire(Trigger.FINISH_EXAM, 'exam_finished');
     this.route = 'completed';
     await Storage.clearSessionData();
     this.hasValidToken = false;
     this._stopTimer();
     this.go('completed');
+  },
+
+  async _queueSubmission(payload){
+    try{
+      const raw = await Storage.readJson('outbox');
+      const items = Array.isArray(raw?.items) ? raw.items : [];
+      if (!items.some(x => x.submissionId === payload.submissionId)) items.push(payload);
+      await Storage.writeJson('outbox', {items, updatedAt:new Date().toISOString()});
+    } catch(e){
+      EventLog.error('storage', 'outbox_write_failed', {data:{err:String(e).slice(0,80)}});
+    }
+  },
+
+  /** Mengirim ulang jawaban yang tertunda saat aplikasi dibuka dan ada koneksi. */
+  async flushOutbox(){
+    if (!backendUrl()) return;
+    let out = null;
+    try{ out = await Storage.readJson('outbox'); }catch(_){ out = null; }
+    const items = out && Array.isArray(out.items) ? out.items : [];
+    if (!items.length) return;
+    let sent = 0;
+    for (const item of items){
+      try{ await ApiClient._post(item); sent++; }
+      catch(_){ break; }   // antrean dijaga urutan; coba lagi nanti
+    }
+    if (sent){
+      const rest = items.slice(sent);
+      try{
+        if (rest.length) await Storage.writeJson('outbox', {items:rest, updatedAt:new Date().toISOString()});
+        else await Storage.delete('outbox');
+      }catch(_){}
+      EventLog.info('network', 'outbox_flushed', {data:{sent, remaining:rest.length}});
+      if (sent === items.length) toast('Jawaban yang tertunda sudah terkirim.');
+    }
+  },
+
+  _renderDone(){
+    const el = document.getElementById('d-submit');
+    if (!el || !this.submitResult){ return; }
+    const map = {sending:'warning', sent:'success', queued:'warning', local:'neutral', error:'danger'};
+    el.hidden = false;
+    el.className = 'banner ' + (map[this.submitResult.state] || 'neutral');
+    el.querySelector('.tx p').textContent = this.submitResult.label;
+    const btn = document.getElementById('btn-retry-send');
+    if (btn) btn.hidden = this.submitResult.state !== 'queued';
   },
 
   /* ---- 5. pelanggaran ---- */
@@ -1879,6 +2171,7 @@ const App = {
     document.getElementById('d-answered').textContent = `${answered} dari ${s.totalQuestions}`;
     document.getElementById('d-progress').style.width =
       `${s.totalQuestions ? Math.round(answered / s.totalQuestions * 100) : 0}%`;
+    this._renderDone();
   },
 
   /* ---- penyimpanan ---- */
@@ -1922,6 +2215,10 @@ const App = {
       this.session = meta.session;
       this.participant = meta.participant;
       this.progress = prog;
+      // Tanda ragu-ragu ikut pulih; berkas lama mungkin belum memilikinya.
+      if (!this.progress.review || typeof this.progress.review !== 'object'){
+        this.progress.review = {};
+      }
       this.route = (['instructions','exam','violation','completed'].includes(meta.route))
         ? meta.route : 'instructions';
 
@@ -2160,55 +2457,66 @@ function clearLoginError(){
 document.getElementById('f-identity').addEventListener('input', clearLoginError);
 document.getElementById('f-password').addEventListener('input', clearLoginError);
 
-/* ---- Pembuat Soal ---- */
+/* ---- Impor / library soal ---- */
 function openBank(){
   Bank.load();
   fillInfoFields();
-  document.getElementById('bank-form').hidden = true;
-  document.getElementById('bank-save-note').hidden = true;
+  clearDocumentImport();
   App.go('bank');
   renderBankList();
 }
 for (const id of ['btn-to-bank', 'btn-to-bank-2']){
   document.getElementById(id)?.addEventListener('click', openBank);
 }
-document.getElementById('bank-back')?.addEventListener('click', async () => {
-  if (!readInfoFields()) return;          // kode tidak valid — tetap di form
+document.getElementById('bank-back')?.addEventListener('click', () => {
+  if (!readInfoFields()) return;
   Bank.save();
   App.go(App.session ? 'instructions' : 'code');
 });
-document.getElementById('btn-add-q')?.addEventListener('click', () => Form.open(null));
-document.getElementById('bf-close')?.addEventListener('click', () => Form.close());
-document.getElementById('bf-cancel')?.addEventListener('click', () => Form.close());
-document.getElementById('bf-save')?.addEventListener('click', () => Form.submit());
-document.getElementById('bf-add-opt')?.addEventListener('click', () => Form.addOption());
-document.getElementById('bf-type')?.addEventListener('change', () => Form.applyType());
-document.getElementById('btn-bank-save')?.addEventListener('click', () => {
-  if (!readInfoFields()) return;
-  saveAndRenderBank('Semua perubahan tersimpan.');
-});
-document.getElementById('btn-bank-export')?.addEventListener('click', () => {
-  readInfoFields();                        // kumpulkan perubahan terakhir
-  Bank.save();
-  exportBank();
-});
-document.getElementById('btn-bank-import')?.addEventListener('click', () =>
-  document.getElementById('bank-file').click());
-document.getElementById('bank-file')?.addEventListener('change', e => {
+document.getElementById('btn-doc-import')?.addEventListener('click', () =>
+  document.getElementById('doc-file').click());
+document.getElementById('doc-file')?.addEventListener('change', e => {
   const f = e.target.files && e.target.files[0];
-  if (f) importBank(f);
-  e.target.value = '';                     // izinkan memilih berkas yang sama lagi
+  if (f) importDocument(f);
+  e.target.value = '';
 });
-document.getElementById('btn-bank-demo')?.addEventListener('click', async () => {
-  const ok = await confirmDialog(
-    'Ganti dengan soal contoh?',
-    'Seluruh soal yang ada akan diganti oleh empat soal contoh bawaan.',
-    'Ganti');
-  if (!ok) return;
-  Bank.data = clone(DEMO_BANK);
-  fillInfoFields();
-  saveAndRenderBank('Soal contoh dimuat.');
+document.getElementById('doc-import-accept')?.addEventListener('click', () => acceptDocumentImport());
+document.getElementById('doc-import-cancel')?.addEventListener('click', () => clearDocumentImport());
+document.getElementById('bi-backend-url')?.addEventListener('change', () => {
+  const url = setBackendUrl(document.getElementById('bi-backend-url').value);
+  document.getElementById('bi-backend-url').value = url;
+  const note = document.getElementById('backend-save-note');
+  note.hidden = false;
+  note.textContent = url ? 'URL backend tersimpan di perangkat ini.' : 'Mode demo lokal; hasil tidak dikirim ke backend.';
 });
+document.getElementById('bi-backend-pin')?.addEventListener('input', e => { _backendPin = e.target.value.trim(); });
+document.getElementById('btn-register-backend')?.addEventListener('click', async () => {
+  if (!readInfoFields()) return;
+  const url = setBackendUrl(document.getElementById('bi-backend-url').value);
+  if (!url){ toast('Isi URL backend GAS terlebih dahulu.'); return; }
+  _backendPin = document.getElementById('bi-backend-pin').value.trim();
+  if (!_backendPin){ toast('Isi PIN pengawas GAS terlebih dahulu.'); return; }
+  const btn = document.getElementById('btn-register-backend');
+  btn.disabled = true; btn.textContent = 'Mendaftarkan…';
+  try{
+    await ApiClient._registerExam();
+    toast('Library soal dan kunci terdaftar di backend.');
+    document.getElementById('backend-save-note').hidden = false;
+    document.getElementById('backend-save-note').textContent = 'Ujian terdaftar. Kunci tersimpan di server dan tidak dikirim ke siswa.';
+    document.getElementById('bi-backend-pin').value = '';
+    _backendPin = '';   // PIN hanya dibutuhkan sekali untuk pendaftaran.
+  } catch(e){ toast(String(e.message || 'Gagal mendaftarkan ujian.').slice(0,180)); }
+  finally{ btn.disabled = false; btn.textContent = 'Daftarkan Library & Kunci ke Backend'; }
+});
+
+// Pengaturan ujian disimpan otomatis saat selesai diubah.
+for (const id of ['bi-code', 'bi-title', 'bi-subject', 'bi-duration']){
+  document.getElementById(id)?.addEventListener('change', () => {
+    if (!readInfoFields()) return;
+    Bank.save();
+    saveAndRenderBank('Pengaturan ujian tersimpan.');
+  });
+}
 
 document.getElementById('btn-login').addEventListener('click', async () => {
   const id = document.getElementById('f-identity').value.trim();
@@ -2231,6 +2539,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
   btn.disabled = false;
   btn.textContent = 'Masuk';
   EventLog.info('session', 'login_success', {data:{identity:len(id)}});
+  App.loginIdentity = id;
   App.route = 'code';
   App.go('code');
   _code.focus();
@@ -2257,6 +2566,7 @@ _code.addEventListener('keydown', e => { if (e.key === 'Enter') App.validateCode
 
 document.getElementById('btn-start').addEventListener('click', () => App.startExam());
 document.getElementById('btn-prev').addEventListener('click', () => App.goTo(App.current - 1));
+document.getElementById('btn-mark-review')?.addEventListener('click', () => App.toggleReview());
 
 document.getElementById('btn-request-token').addEventListener('click', () => App.requestReentry());
 document.getElementById('btn-verify').addEventListener('click', () =>
@@ -2278,6 +2588,18 @@ document.getElementById('btn-abort').addEventListener('click', async () => {
 
 document.getElementById('btn-done').addEventListener('click', async () => {
   await App.abortSession();
+});
+document.getElementById('btn-retry-send')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-retry-send');
+  btn.disabled = true;
+  try{
+    await App.flushOutbox();
+    App.submitResult = {state:'sent', label:'Jawaban terkirim dan diterima server.'};
+    App._renderDone();
+  } catch(_){
+    App.submitResult = {state:'queued', label:'Belum terkirim; akan dicoba kembali saat koneksi tersedia.'};
+    App._renderDone();
+  } finally { btn.disabled = false; }
 });
 
 /* --------------------------------------------------------------------------
@@ -2320,7 +2642,7 @@ window.addEventListener('focus', () => {
   }
 });
 
-window.addEventListener('online',  () => App.setConnection('online'));
+window.addEventListener('online',  () => { App.setConnection('online'); App.flushOutbox().catch(() => {}); });
 window.addEventListener('offline', () => App.setConnection('offline'));
 
 // Mencegah tempel pada jawaban selama ujian.
@@ -2349,12 +2671,23 @@ window.addEventListener('error', e => {
 });
 
 /* =========================================================================
-   BANK SOAL — penyimpanan dan pembuatan soal pengguna
+   BANK SOAL — penyimpanan dan impor
    ========================================================================= */
 
 const BANK_KEY = 'exambrowser.bank';
+const BACKEND_KEY = 'exambrowser.backendUrl';
+let _backendPin = '';   // PIN pengawas tidak disimpan dan tidak pernah masuk log.
 
-/** Contoh bawaan; dipakai bila pengguna belum membuat soal apa pun. */
+function backendUrl(){
+  const fromStorage = Storage.rawGet(BACKEND_KEY) || '';
+  return String(fromStorage || '').trim().replace(/\/+$/, '');
+}
+function setBackendUrl(url){
+  const clean = String(url || '').trim().replace(/\/+$/, '');
+  Storage.rawSet(BACKEND_KEY, clean);
+  return clean;
+}
+
 const DEMO_BANK = {
   version: 1,
   code: 'UJIAN2026',
@@ -2412,21 +2745,8 @@ const Bank = {
   get questions(){ return (this.data && this.data.questions) || []; },
   get count(){ return this.questions.length; },
 
-  /** Menambah soal baru di akhir daftar. */
-  add(q){ this.data.questions.push(q); },
-
-  /** Mengganti soal pada [index]. */
-  replace(index, q){ this.data.questions[index] = q; },
-
-  remove(index){ this.data.questions.splice(index, 1); },
-  move(index, delta){
-    const to = index + delta;
-    if (to < 0 || to >= this.questions.length) return false;
-    const list = this.data.questions;
-    const [item] = list.splice(index, 1);
-    list.splice(to, 0, item);
-    return true;
-  },
+  /** Menambah soal impor di akhir library. */
+  add(q){ this.data.questions.push(normalizeQuestion(q) || q); },
 };
 
 /** Salinan dalam agar demo tidak ikut termutasi saat diedit. */
@@ -2471,15 +2791,19 @@ function normalizeQuestion(q){
       });
     }
     if (options.length < 2) return null;   // pilihan tanpa opsi cukup = tidak sah
-    // Pilihan tunggal wajib tepat satu kunci.
+    // Pilihan tunggal wajib tepat satu kunci. Namun jangan menebak kunci —
+    // soal impor yang kuncinya belum terbaca ditandai needsKey agar pengawas
+    // menandainya sendiri, bukan salah menandai pilihan pertama.
     if (type === 'single_choice'){
       const keys = options.filter(o => o.key);
-      if (keys.length !== 1){
-        keys.forEach(o => { o.key = false; });
-        options[0].key = true;
+      if (keys.length > 1){
+        keys.slice(1).forEach(o => { o.key = false; });
       }
     }
   }
+
+  const needsKey = (type === 'single_choice' || type === 'multiple_choice')
+    ? !options.some(o => o.key) : false;
 
   return {
     id: str(q.id, 40) || ('q' + _uuid().slice(0, 8)),
@@ -2489,6 +2813,8 @@ function normalizeQuestion(q){
     context: str(q.context, 500) || '',
     answer: str(q.answer, 300) || '',
     options,
+    needsKey,
+    importedFrom: str(q.importedFrom, 120) || '',
   };
 }
 
@@ -2505,22 +2831,6 @@ function str(v, max){
 }
 function clamp(n, lo, hi){ return Math.min(hi, Math.max(lo, n)); }
 
-/** Membuat entri soal kosong siap diedit. */
-function blankQuestion(type){
-  return {
-    id: 'q' + _uuid().slice(0, 8),
-    type: type || 'single_choice',
-    score: 1,
-    prompt: '',
-    context: '',
-    answer: '',
-    options: [
-      {id:'opt1', label:'', key:true},
-      {id:'opt2', label:'', key:false},
-    ],
-  };
-}
-
 /* --------------------------------------------------------------------------
    Tampilan daftar soal
    -------------------------------------------------------------------------- */
@@ -2535,62 +2845,38 @@ function renderBankList(){
   empty.hidden = qs.length > 0;
 
   list.innerHTML = qs.map((q, i) => {
-    let optsHtml = '';
-    if (q.options.length){
-      optsHtml = '<ul class="bank-opts">' + q.options.map(o =>
-        `<li class="${o.key ? 'is-key' : ''}">${escapeHtml(o.label)}${
-          o.key ? ' ✓' : ''}</li>`).join('') + '</ul>';
-    } else if (q.type === 'short_text'){
-      optsHtml = `<p class="hint">Kunci: <b>${escapeHtml(q.answer || '—')}</b></p>`;
-    } else if (q.type === 'essay'){
-      optsHtml = '<p class="hint">Dinilai manual oleh pengawas.</p>';
-    }
-
+    const optsHtml = q.options.length
+      ? '<ul class="bank-opts">' + q.options.map(o =>
+          `<li class="${o.key ? 'is-key' : ''}">${escapeHtml(o.label)}${o.key ? ' ✓' : ''}</li>`
+        ).join('') + '</ul>'
+      : q.type === 'essay'
+        ? '<p class="hint">Uraian — dinilai pengawas.</p>'
+        : `<p class="hint">Kunci: ${escapeHtml(q.answer || '—')}</p>`;
+    const needsKey = q.needsKey ? '<p class="hint" style="color:var(--warning)"><b>Kunci perlu ditinjau — edit sumber DOCX/PDF dan impor ulang.</b></p>' : '';
     return `<div class="bank-item" data-i="${i}">
       <div class="bank-head">
         <span class="n">${i + 1}</span>
         <span class="t">${escapeHtml(q.prompt)}</span>
         <span class="chip neutral dense">${typeLabel(q.type)}</span>
-        <div class="bank-actions">
-          <button class="iconbtn" data-act="up" title="Naik" ${i === 0 ? 'disabled' : ''}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                 stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
-          </button>
-          <button class="iconbtn" data-act="down" title="Turun" ${i === qs.length - 1 ? 'disabled' : ''}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                 stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
-          <button class="iconbtn" data-act="edit" title="Ubah">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-                 stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4v16h16v-7"/><path d="M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z"/></svg>
-          </button>
-          <button class="iconbtn danger" data-act="del" title="Hapus">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-                 stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-          </button>
-        </div>
       </div>
       <div class="bank-body">
         ${q.context ? `<p class="hint" style="margin-bottom:var(--xs)">${escapeHtml(q.context)}</p>` : ''}
         <p class="bank-q">${escapeHtml(q.prompt)}</p>
-        ${optsHtml}
+        ${optsHtml}${needsKey}
         <p class="hint" style="margin-top:var(--xs)">Bobot skor: ${q.score}</p>
       </div>
     </div>`;
   }).join('');
 
-  list.querySelectorAll('.bank-item').forEach(item => {
-    const i = Number(item.dataset.i);
-    item.querySelectorAll('[data-act]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const act = btn.dataset.act;
-        if (act === 'edit') openQuestionForm(i);
-        else if (act === 'del') deleteQuestion(i);
-        else if (act === 'up' && Bank.move(i, -1)) saveAndRenderBank();
-        else if (act === 'down' && Bank.move(i, 1)) saveAndRenderBank();
-      });
-    });
-  });
+  const pending = qs.filter(q => q.needsKey).length;
+  const warn = document.getElementById('bank-key-warning');
+  const warnText = document.getElementById('bank-key-warning-text');
+  if (warn && warnText){
+    warn.hidden = pending === 0;
+    if (pending){
+      warnText.textContent = `Ada ${pending} soal tanpa kunci terverifikasi. Batalkan impor, perbaiki dokumen sumber lalu impor ulang sebelum ujian.`;
+    }
+  }
 }
 
 /** Menyimpan bank lalu merender ulang daftar + catatan status. */
@@ -2606,246 +2892,440 @@ function saveAndRenderBank(note){
   el.style.color = ok ? 'var(--success)' : 'var(--danger)';
 }
 
-async function deleteQuestion(index){
-  const q = Bank.questions[index];
-  const ok = await confirmDialog(
-    'Hapus soal ini?',
-    q ? `Soal "${q.prompt.slice(0, 60)}${q.prompt.length > 60 ? '…' : ''}" akan dihapus.`
-      : 'Soal ini akan dihapus.',
-    'Hapus');
-  if (!ok) return;
-  Bank.remove(index);
-  saveAndRenderBank('Soal dihapus.');
+/* --------------------------------------------------------------------------
+   IMPOR DOKUMEN OFFLINE — PDF text layer / DOCX ZIP + XML
+   -------------------------------------------------------------------------- */
+const DocumentImport = {
+  pending: null,
+  maxBytes: 30 * 1024 * 1024,
+  async read(file){
+    if (!file || !file.size) throw new Error('Berkas kosong atau tidak dapat dibaca.');
+    if (file.size > this.maxBytes) throw new Error('Ukuran berkas melebihi batas 30 MB.');
+    const ext = String(file.name || '').toLowerCase().split('.').pop();
+    if (ext === 'docx') return readDocxText(file);
+    if (ext === 'pdf') return readPdfText(file);
+    throw new Error('Format tidak didukung. Pilih berkas .docx atau .pdf.');
+  },
+  parse(text){ return parseExamDocument(text); },
+};
+
+async function importDocument(file){
+  clearDocumentImport();
+  const title = document.getElementById('doc-import-title');
+  title.textContent = 'Membaca dokumen…';
+  document.getElementById('doc-import-summary').textContent = 'Berkas diproses lokal di perangkat ini.';
+  document.getElementById('doc-import-issues').innerHTML = '';
+  document.getElementById('doc-mark-list').innerHTML = '';
+  document.getElementById('doc-import-mark').hidden = true;
+  document.getElementById('doc-import-review').hidden = false;
+  document.getElementById('doc-import-accept').disabled = true;
+  try{
+    const result = await DocumentImport.read(file);
+    const draft = parseExamDocument(result.text);
+    if (!draft.questions.length) throw new Error('Tidak ada soal bernomor yang dapat dikenali. Pastikan teks dokumen berisi nomor soal dan pilihan A., B., C., D.');
+    DocumentImport.pending = {draft, source:file.name, warnings:result.warnings || []};
+    renderDocumentImportReview();
+    EventLog.info('bank', 'document_import_parsed', {
+      data:{type:file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : 'docx', questions:draft.questions.length, matchedKeys:draft.matchedKeys, warnings:DocumentImport.pending.warnings.length + draft.issues.length},
+    });
+  } catch(err){
+    clearDocumentImport();
+    toast(String(err && err.message || 'Dokumen tidak dapat dibaca.').slice(0,180));
+  }
 }
 
-/* --------------------------------------------------------------------------
-   Form editor soal
-   -------------------------------------------------------------------------- */
-const Form = {
-  editingIndex: null,   // null = soal baru
-  draft: null,
-  keyIndex: 0,          // indeks kunci pada pilihan tunggal
+function clearDocumentImport(){
+  DocumentImport.pending = null;
+  const panel = document.getElementById('doc-import-review');
+  if (panel) panel.hidden = true;
+  const accept = document.getElementById('doc-import-accept');
+  if (accept) accept.disabled = false;
+  const box = document.getElementById('doc-import-replace');
+  if (box) box.checked = false;
+  const mark = document.getElementById('doc-import-mark');
+  if (mark) mark.hidden = true;
+  const list = document.getElementById('doc-mark-list');
+  if (list) list.innerHTML = '';
+}
 
-  open(index){
-    const isNew = index === null || index === undefined;
-    this.editingIndex = isNew ? null : index;
-    this.draft = isNew
-      ? blankQuestion('single_choice')
-      : clone(Bank.questions[index]);
+function renderDocumentImportReview(){
+  const p = DocumentImport.pending;
+  if (!p) return;
+  const d = p.draft;
+  document.getElementById('doc-import-title').textContent = 'Tinjau hasil impor — ' + p.source;
 
-    document.getElementById('bf-title').textContent =
-      isNew ? 'Soal Baru' : `Ubah Soal ${index + 1}`;
-    document.getElementById('bf-type').value = this.draft.type;
-    document.getElementById('bf-prompt').value = this.draft.prompt;
-    document.getElementById('bf-context').value = this.draft.context;
-    document.getElementById('bf-answer').value = this.draft.answer;
-    document.getElementById('bf-score').value = String(this.draft.score);
-    document.getElementById('bf-error').hidden = true;
+  // Hitung ulang dari keadaan terkini — pengawas mungkin sudah menandai kunci
+  // lewat daftar di bawah.
+  const withKey = d.questions.filter(q => q.options.length === 0 || !q.needsKey).length;
+  const ready = withKey;
+  document.getElementById('doc-import-summary').textContent =
+    `${d.questions.length} soal terdeteksi; ${ready} di antaranya sudah memiliki kunci. `
+    + `Gunakan daftar di bawah untuk menandai kunci yang belum terbaca, lalu tekan Tambahkan ke Library.`;
+  const fixed = n => {
+    const q = d.questions.find(item => item.sourceNumber === n) || d.questions[n - 1];
+    return q && !q.needsKey;
+  };
+  const issues = [...(p.warnings || []), ...d.issues]
+    .filter(x => {
+      const m = x.match(/^Soal (\d+):/);
+      return !m || !fixed(Number(m[1]));
+    })
+    .slice(0, 12);
+  document.getElementById('doc-import-issues').innerHTML = issues.map(x => `<li>${escapeHtml(x)}</li>`).join('');
+  document.getElementById('doc-import-review').classList.toggle('success', issues.length === 0);
+  document.getElementById('doc-import-review').classList.toggle('warning', issues.length > 0);
+  document.getElementById('doc-import-mark').hidden = false;
+  renderMarkList();
+  document.getElementById('doc-import-accept').disabled = false;
+}
 
-    this.keyIndex = Math.max(0,
-      this.draft.options.findIndex(o => o.key));
-    this.renderOptions();
-    this.applyType();
+/** Daftar soal bertanda untuk menandai/mengubah kunci sebelum disimpan. */
+function renderMarkList(){
+  const host = document.getElementById('doc-mark-list');
+  const p = DocumentImport.pending;
+  if (!host || !p) return;
+  const qs = p.draft.questions;
+  host.innerHTML = qs.map((q, i) => {
+    const opts = q.options.length
+      ? `<ul class="bank-opts">${q.options.map((o, oi) =>
+          `<li class="${o.key ? 'is-key' : ''}">${escapeHtml(o.label)}${o.key ? ' ✓' : ''}</li>`).join('')}</ul>`
+      : q.type === 'essay'
+        ? '<p class="hint">Uraian — dinilai pengawas.</p>'
+        : `<p class="hint">Kunci teks: ${escapeHtml(q.answer || '—')}</p>`;
+    const flag = q.needsKey ? ' <span class="chip warning dense">kunci perlu ditandai</span>' : '';
+    return `<div class="bank-item" data-mi="${i}">
+      <div class="bank-head">
+        <span class="n">${i + 1}</span>
+        <span class="t">${escapeHtml(q.prompt)}${flag}</span>
+        <div class="bank-actions">
+          <button class="btn btn-secondary" data-mact="mark" style="width:auto;min-height:32px;padding:0 10px">
+            Tandai kunci
+          </button>
+        </div>
+      </div>
+      <div class="bank-body">${opts}</div>
+    </div>`;
+  }).join('');
+  host.querySelectorAll('[data-mact="mark"]').forEach(btn => {
+    btn.addEventListener('click', () => openMarkDialog(Number(btn.closest('[data-mi]').dataset.mi)));
+  });
+}
 
-    const wrap = document.getElementById('bank-form');
-    wrap.hidden = false;
-    wrap.classList.add('is-editing');
-    // `scrollIntoView` tidak tersedia di semua runtime (mis. jsdom).
-    if (typeof wrap.scrollIntoView === 'function'){
-      wrap.scrollIntoView({block:'start', behavior:'smooth'});
-    }
-    document.getElementById('bf-prompt').focus();
-  },
-
-  close(){
-    const wrap = document.getElementById('bank-form');
-    wrap.hidden = true;
-    wrap.classList.remove('is-editing');
-    this.draft = null;
-    this.editingIndex = null;
-  },
-
-  /** Menyesuaikan opsi sesuai jenis soal. */
-  applyType(){
-    const type = document.getElementById('bf-type').value;
-    const isChoice = type === 'single_choice' || type === 'multiple_choice';
-    document.getElementById('bf-options-wrap').hidden = !isChoice;
-    document.getElementById('bf-answer-wrap').hidden = isChoice;
-    document.getElementById('bf-answer-hint').textContent =
-      type === 'essay'
-        ? 'Diisi pengawas; peserta tidak melihat kunci ini.'
-        : 'Dinilai otomatis; huruf besar-kecil diabaikan.';
-
-    // Pilihan tunggal wajib satu kunci.
-    if (type === 'single_choice'){
-      const list = this.draft.options;
-      const keyFound = list.findIndex(o => o.key);
-      if (keyFound < 0 && list.length) list[0].key = true;
-      if (keyFound >= 0) this.keyIndex = keyFound;
-      list.forEach((o, i) => { o.key = i === this.keyIndex; });
-      this.renderOptions();
-    }
-    this.draft.type = type;
-  },
-
-  renderOptions(){
-    const host = document.getElementById('bf-options');
-    if (!host) return;
-    const isSingle = document.getElementById('bf-type').value === 'single_choice';
-
-    host.innerHTML = this.draft.options.map((o, i) => `
-      <div class="opt-row" data-i="${i}">
-        <button type="button" class="opt-key${o.key ? ' is-key' : ''}"
-                data-key="${i}" title="Tandai kunci jawaban"
-                ${isSingle ? '' : ''}>
+/** Dialog penandaan kunci per soal — hanya muncul bila soal punya pilihan. */
+function openMarkDialog(index){
+  const p = DocumentImport.pending;
+  const q = p && p.draft.questions[index];
+  if (!q || !q.options.length) return;
+  const isSingle = q.type !== 'multiple_choice';
+  const labels = q.options.map((o, oi) => `
+    <button type="button" class="opt-key${o.key ? ' is-key' : ''}" data-mk="${oi}"
+            title="Tandai sebagai kunci">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+    </button>`).join('');
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(10,14,20,.55);z-index:210;
+         display:flex;align-items:center;justify-content:center;padding:16px">
+      <div role="dialog" aria-modal="true" style="background:var(--surface);border-radius:var(--radius-lg);
+           max-width:520px;width:100%;padding:var(--lg);box-shadow:var(--shadow-high)">
+        <div class="h4">Tandai kunci — soal ${index + 1}</div>
+        <p class="body muted" style="margin-top:var(--xs)">${escapeHtml(q.prompt)}</p>
+        <div class="stack gap-xs" id="mk-opts" style="margin-top:var(--sm)"></div>
+        <div style="display:flex;gap:var(--sm);margin-top:var(--lg);justify-content:flex-end">
+          <button data-mcancel class="btn btn-secondary" style="width:auto;min-width:110px">Batal</button>
+          <button data-mok class="btn btn-primary" style="width:auto;min-width:130px">Simpan Kunci</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  const host = wrap.querySelector('#mk-opts');
+  const paint = () => {
+    host.innerHTML = q.options.map((o, oi) => `
+      <div class="opt-row">
+        <button type="button" class="opt-key${o.key ? ' is-key' : ''}" data-mk="${oi}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
         </button>
-        <input class="input" data-opt="${i}" maxlength="300"
-               placeholder="Pilihan ${i + 1}" value="${escapeAttr(o.label)}">
-        <button type="button" class="iconbtn danger" data-rm="${i}" title="Hapus pilihan"
-                ${this.draft.options.length <= 2 ? 'disabled' : ''}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+        <span class="input" style="display:flex;align-items:center">${escapeHtml(o.label)}</span>
       </div>`).join('');
-
-    host.querySelectorAll('[data-key]').forEach(btn => {
+    host.querySelectorAll('[data-mk]').forEach(btn => {
       btn.addEventListener('click', () => {
-        const i = Number(btn.dataset.key);
-        if (isSingle){
-          this.keyIndex = i;
-          this.draft.options.forEach((o, idx) => { o.key = idx === i; });
-        } else {
-          this.draft.options[i].key = !this.draft.options[i].key;
-        }
-        this.renderOptions();
+        const oi = Number(btn.dataset.mk);
+        if (isSingle) q.options.forEach((o, idx) => { o.key = idx === oi; });
+        else q.options[oi].key = !q.options[oi].key;
+        paint();
       });
     });
-    host.querySelectorAll('[data-opt]').forEach(inp => {
-      inp.addEventListener('input', () => {
-        this.draft.options[Number(inp.dataset.opt)].label = inp.value;
-      });
-    });
-    host.querySelectorAll('[data-rm]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const i = Number(btn.dataset.rm);
-        this.draft.options.splice(i, 1);
-        if (this.keyIndex >= this.draft.options.length){
-          this.keyIndex = Math.max(0, this.draft.options.length - 1);
-        }
-        this.draft.options.forEach((o, idx) => { o.key = idx === this.keyIndex; });
-        this.renderOptions();
-      });
-    });
-  },
+  };
+  paint();
+  const close = () => wrap.remove();
+  wrap.querySelector('[data-mcancel]').addEventListener('click', close);
+  wrap.querySelector('[data-mok]').addEventListener('click', () => {
+    q.needsKey = !q.options.some(o => o.key);
+    close();
+    renderMarkList();
+    renderDocumentImportReview();
+  });
+}
 
-  addOption(){
-    const n = this.draft.options.length + 1;
-    this.draft.options.push({
-      id:'opt' + n + '_' + _uuid().slice(0,4),
-      label:'', key:false,
-    });
-    this.renderOptions();
-    const inputs = document.querySelectorAll('#bf-options [data-opt]');
-    if (inputs.length) inputs[inputs.length - 1].focus();
-  },
+async function acceptDocumentImport(){
+  const p = DocumentImport.pending;
+  if (!p) return;
+  const box = document.getElementById('doc-import-replace');
+  const replace = !!(box && box.checked);
+  const target = replace ? 0 : Bank.count;
+  const ok = await confirmDialog(
+    replace ? 'Gantikan seluruh isi library?' : 'Tambahkan ke library?',
+    `${p.draft.questions.length} soal dari “${p.source}” akan ${
+      replace ? 'menggantikan ' + Bank.count + ' soal yang ada' : 'ditambahkan ke library'
+    }. Tinjau kunci sebelum membagikan kode ujian.`,
+    replace ? 'Gantikan' : 'Tambahkan');
+  if (!ok) return;
+  if (replace) Bank.data.questions = [];
+  p.draft.questions.forEach(q => {
+    const copy = clone(q);
+    copy.id = 'doc' + _uuid().slice(0, 8);
+    copy.importedFrom = p.source.slice(0, 120);
+    Bank.add(copy);
+  });
+  clearDocumentImport();
+  saveAndRenderBank(`${p.draft.questions.length} soal ${replace ? 'menggantikan library' : 'ditambahkan'}; periksa kunci sebelum ujian.`);
+  toast(`${p.draft.questions.length} soal dimuat dari dokumen.`);
+  const first = document.querySelectorAll('#bank-list .bank-item')[target];
+  if (first && typeof first.scrollIntoView === 'function') first.scrollIntoView({block:'start', behavior:'smooth'});
+}
 
-  collect(){
-    const type = document.getElementById('bf-type').value;
-    return {
-      id: this.draft.id,
-      type,
-      score: clamp(Math.round(Number(document.getElementById('bf-score').value) || 1), 1, 100),
-      prompt: str(document.getElementById('bf-prompt').value, 2000),
-      context: str(document.getElementById('bf-context').value, 500),
-      answer: str(document.getElementById('bf-answer').value, 300),
-      options: this.draft.options
-        .map((o, i) => ({
-          id: o.id || ('opt' + (i + 1)),
-          label: str(o.label, 300),
-          key: !!o.key,
-        }))
-        .filter(o => o.label),
-    };
-  },
+function parseExamDocument(rawText){
+  const text = String(rawText || '').replace(/\r/g, '').replace(/ /g, ' ');
+  const normalized = text.split('\n').map(line => line.replace(/[\t ]+/g, ' ').trim()).filter(Boolean);
+  const keyHeading = /(?:daftar\s+)?(?:kunci\s+jawaban|kunci\s+jawabannya|jawaban\s+soal|pembahasan\s+kunci)\b/i;
+  const headingIndex = normalized.findIndex(line => keyHeading.test(line));
+  const questionText = (headingIndex < 0 ? normalized : normalized.slice(0, headingIndex)).join('\n');
+  let keyText = '';
+  if (headingIndex >= 0){
+    const sameLine = normalized[headingIndex].replace(keyHeading, '').replace(/^[\s:;.\-–—]+/, '');
+    keyText = [sameLine, ...normalized.slice(headingIndex + 1)].filter(Boolean).join('\n');
+  }
+  const keys = parseAnswerKeys(keyText);
+  const questionBlocks = splitQuestionBlocks(questionText);
+  const questions = [];
+  const issues = [];
+  let matchedKeys = 0;
+  questionBlocks.forEach(block => {
+    const q = parseQuestionBlock(block);
+    if (!q) return;
+    const answer = keys.answers.get(q.sourceNumber);
 
-  submit(){
-    const q = this.collect();
-    const err = document.getElementById('bf-error');
-    const fail = msg => { err.hidden = false; err.textContent = msg; };
-
-    if (!q.prompt) return fail('Pertanyaan tidak boleh kosong.');
-
-    if (q.type === 'single_choice' || q.type === 'multiple_choice'){
-      if (q.options.length < 2) return fail('Pilihan jawaban minimal 2.');
-      const keys = q.options.filter(o => o.key);
-      if (q.type === 'single_choice' && keys.length !== 1){
-        return fail('Pilihan tunggal harus menandai tepat satu kunci jawaban.');
+    if (keys.duplicates.has(q.sourceNumber)){
+      issues.push(`Soal ${q.sourceNumber}: kunci muncul lebih dari sekali di halaman kunci. Tandai manual.`);
+    } else if (answer && q.options.length){
+      const letters = answer.toUpperCase().split('').filter(c => c >= 'A' && c <= 'H');
+      const matched = letters.length && letters.every(L => q.options.some(o => o.letter === L));
+      if (matched){
+        q.options.forEach(o => { o.key = letters.includes(o.letter); });
+        q.type = letters.length > 1 ? 'multiple_choice' : 'single_choice';
+        q._keyMatched = true;
+      } else {
+        issues.push(`Soal ${q.sourceNumber}: kunci ${letters.join(',')} tidak cocok dengan pilihan yang terbaca. Tandai manual.`);
       }
-      if (q.type === 'multiple_choice' && keys.length < 1){
-        return fail('Tandai setidaknya satu kunci jawaban.');
-      }
-    } else if (q.type === 'short_text' && !q.answer){
-      return fail('Isian singkat memerlukan kunci jawaban.');
+    } else if (keys.invalid.has(q.sourceNumber)){
+      const letters = keys.invalid.get(q.sourceNumber);
+      issues.push(`Soal ${q.sourceNumber}: kunci ${letters} bukan huruf pilihan A–H. Periksa dokumen dan tandai manual.`);
+    } else if (answer && !q.options.length){
+      issues.push(`Soal ${q.sourceNumber}: terbaca sebagai uraian, padahal halaman kunci menulis ${answer}. Periksa kembali.`);
+    } else if (q.options.length){
+      issues.push(`Soal ${q.sourceNumber}: kunci tidak ditemukan di bagian kunci. Tandai manual sebelum ujian.`);
     }
 
-    err.hidden = true;
+    q.options = q.options.map(o => ({id:o.letter.toLowerCase(), label:o.label, key:!!o.key}));
+    q.needsKey = q.options.length > 0 && !q.options.some(o => o.key);
+    if (q._keyMatched) matchedKeys++;
+    delete q._keyMatched;
+    questions.push(q);
+  });
+  if (headingIndex < 0) issues.unshift('Judul bagian “Kunci Jawaban” tidak ditemukan; seluruh kunci perlu ditandai manual.');
+  for (const n of keys.answers.keys()){
+    if (!questionBlocks.some(b => b.number === n)){
+      issues.push(`Ada kunci untuk nomor ${n}, tetapi soalnya tidak terdeteksi.`);
+    }
+  }
+  const numbers = questions.map(q => q.sourceNumber);
+  if (numbers.some((n,i) => i && n !== numbers[i-1] + 1)) issues.push('Nomor soal tidak berurutan atau ada yang terlewat; periksa susunan hasil impor.');
+  return {questions, issues, matchedKeys,
+    keyCount:keys.answers.size, headingFound:headingIndex >= 0};
+}
 
-    if (this.editingIndex === null) Bank.add(q);
-    else Bank.replace(this.editingIndex, q);
+function splitQuestionBlocks(text){
+  const lines = text.split('\n');
+  const starts = [];
+  const re = /^\s*(?:soal\s+)?(\d{1,3})(?:\s*[.)\-:]\s*|\s+)(\S.*)$/;
+  lines.forEach((line,i) => { const m = line.match(re); if (m) starts.push({line:i, number:Number(m[1]), first:m[2] || ''}); });
+  const blocks = [];
+  starts.forEach((s,i) => {
+    const end = i + 1 < starts.length ? starts[i+1].line : lines.length;
+    blocks.push({number:s.number, text:[s.first, ...lines.slice(s.line+1,end)].filter(Boolean).join('\n')});
+  });
+  return blocks;
+}
 
-    this.close();
-    saveAndRenderBank(this.editingIndex === null ? 'Soal ditambahkan.' : 'Perubahan tersimpan.');
-    this.editingIndex = null;
-  },
-};
+function parseQuestionBlock(block){
+  const lines = block.text.split('\n').map(x => x.trim()).filter(Boolean);
+  const opts = [];
+  let current = null;
+  const optionRe = /^\(?([A-H])\)?\s*[.)\]:\-]\s*(\S.*)?$/i;
+  const promptLines = [];
+  lines.forEach(line => {
+    const m = line.match(optionRe);
+    if (m){
+      current = {letter:m[1].toUpperCase(), label:(m[2] || '').trim(), key:false};
+      opts.push(current);
+    } else if (current){
+      current.label += (current.label ? ' ' : '') + line;
+    } else promptLines.push(line);
+  });
+  const prompt = promptLines.join(' ').replace(/\s+/g, ' ').trim().slice(0, 2000);
+  if (!prompt) return null;
+  if (opts.length < 2){
+    return {sourceNumber:block.number, type:'essay', score:1, prompt, context:'', answer:'', options:[]};
+  }
+  return {sourceNumber:block.number, type:'single_choice', score:1, prompt, context:'', answer:'', options:opts};
+}
+
+function parseAnswerKeys(text){
+  const answers = new Map(), duplicates = new Set(), seen = new Set(), invalid = new Map();
+  // Menangkap satu entri per baris (“1.A”) maupun beberapa entri berurutan
+  // (“1.A 2.B”). Huruf tak standar disimpan sebagai invalid, tidak diabaikan.
+  const re = /(?:^|[\s,;|])(?:soal\s*)?(\d{1,3})\s*[.)\-:]?\s*([A-Z](?:\s*[,/&]\s*[A-Z])*)(?=\s*(?:\d{1,3}\s*[.)\-:]|$|[,;|]))/gi;
+  for (const line of String(text || '').replace(/\r/g,'').split('\n')){
+    for (const m of line.matchAll(re)){
+      const n = Number(m[1]);
+      const letters = m[2].toUpperCase().replace(/[^A-Z]/g, '');
+      if (!letters) continue;
+      if (seen.has(n)){ duplicates.add(n); continue; }
+      seen.add(n);
+      if (!/^[A-H]+$/.test(letters)) invalid.set(n, letters);
+      else answers.set(n, letters);
+    }
+  }
+  return {answers, duplicates, invalid};
+}
+
+async function readDocxText(file){
+  const buffer = await file.arrayBuffer();
+  const entries = await unzipEntries(buffer);
+  const xml = entries.get('word/document.xml');
+  if (!xml) throw new Error('DOCX tidak berisi word/document.xml yang dikenali.');
+  const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  if (doc.querySelector('parsererror')) throw new Error('Struktur XML DOCX rusak atau tidak didukung.');
+  const paragraphs = [...doc.getElementsByTagNameNS('*','p')].map(p => {
+    return [...p.getElementsByTagNameNS('*','t')].map(t => t.textContent || '').join('')
+      .replace(/\s+/g,' ').trim();
+  }).filter(Boolean);
+  if (!paragraphs.length) throw new Error('Tidak ditemukan teks di dalam DOCX.');
+  return {text:paragraphs.join('\n'), warnings:[]};
+}
+
+async function unzipEntries(buffer){
+  const bytes = new Uint8Array(buffer), view = new DataView(buffer);
+  let eocd = -1;
+  for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--){
+    if (view.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('Berkas DOCX bukan ZIP yang valid.');
+  const count = view.getUint16(eocd + 10, true), centralOffset = view.getUint32(eocd + 16, true);
+  if (count > 10000) throw new Error('DOCX memiliki terlalu banyak bagian.');
+  const out = new Map(), decoder = new TextDecoder('utf-8');
+  let pos = centralOffset;
+  for (let n=0; n<count; n++){
+    if (view.getUint32(pos, true) !== 0x02014b50) throw new Error('Direktori ZIP DOCX tidak valid.');
+    const method = view.getUint16(pos+10,true), compressedSize = view.getUint32(pos+20,true);
+    const nameLen = view.getUint16(pos+28,true), extraLen = view.getUint16(pos+30,true), commentLen = view.getUint16(pos+32,true);
+    const localOffset = view.getUint32(pos+42,true);
+    const name = decoder.decode(bytes.slice(pos+46,pos+46+nameLen));
+    pos += 46 + nameLen + extraLen + commentLen;
+    if (name !== 'word/document.xml') continue;
+    if (view.getUint32(localOffset,true) !== 0x04034b50) throw new Error('Bagian dokumen DOCX rusak.');
+    const localNameLen = view.getUint16(localOffset+26,true), localExtraLen = view.getUint16(localOffset+28,true);
+    const start = localOffset + 30 + localNameLen + localExtraLen;
+    const compressed = bytes.slice(start,start+compressedSize);
+    let data;
+    if (method === 0) data = compressed;
+    else if (method === 8){
+      if (typeof DecompressionStream !== 'function') throw new Error('Browser ini tidak mendukung pembacaan DOCX. Gunakan versi terbaru Chrome, Edge, Safari, atau Firefox.');
+      const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      data = new Uint8Array(await new Response(stream).arrayBuffer());
+    } else throw new Error('Metode kompresi DOCX tidak didukung.');
+    if (data.length > 20 * 1024 * 1024) throw new Error('Teks DOCX melebihi batas aman 20 MB.');
+    out.set(name, decoder.decode(data));
+  }
+  return out;
+}
+
+async function readPdfText(file){
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  const raw = new TextDecoder('latin1').decode(bytes);
+  if (!raw.startsWith('%PDF-')) throw new Error('Berkas tidak memiliki header PDF yang valid.');
+  if (!/\/Type\s*\/Page\b/.test(raw)) throw new Error('PDF tidak berisi halaman yang dikenali.');
+  const chunks = [];
+  const streamRe = /<<(.*?)>>\s*stream\r?\n([\s\S]*?)\r?\nendstream/g;
+  let match;
+  while ((match = streamRe.exec(raw))){
+    let content = match[2];
+    if (/\/FlateDecode/.test(match[1])){
+      try{
+        const dataStart = match.index + match[0].indexOf(match[2]);
+        const compressed = bytes.slice(dataStart, dataStart + match[2].length);
+        const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate'));
+        content = new TextDecoder('latin1').decode(await new Response(stream).arrayBuffer());
+      } catch(_){ continue; }
+    }
+    const decoded = decodePdfTextOperators(content);
+    if (decoded.trim()) chunks.push(decoded);
+  }
+  const text = chunks.join('\n').replace(/[ \t]+\n/g,'\n');
+  if (text.replace(/[^\p{L}\p{N}]/gu,'').length < 20){
+    throw new Error('PDF ini tidak memiliki lapisan teks yang dapat diekstrak. PDF scan/foto memerlukan OCR yang belum tersedia; gunakan DOCX atau PDF teks.');
+  }
+  return {text, warnings:['PDF dibaca dengan ekstraktor offline terbatas. Periksa preview dengan saksama; encoding font, tabel, kolom, dan urutan halaman dapat mengubah hasil. PDF scan tidak didukung.']};
+}
+
+function decodePdfTextOperators(src){
+  const out = [];
+  const re = /\(((?:\\.|[^\\)])*)\)\s*Tj|\[((?:\\.|[^\]])*)\]\s*TJ|\bT\*/g;
+  let m;
+  while ((m = re.exec(src))){
+    if (m[0] === 'T*'){ out.push('\n'); continue; }
+    const part = m[1] !== undefined ? m[1] : m[2];
+    if (m[1] !== undefined) out.push(decodePdfLiteral(part));
+    else {
+      const strings = part.match(/\(((?:\\.|[^\\)])*)\)/g) || [];
+      out.push(strings.map(s => decodePdfLiteral(s.slice(1,-1))).join(''));
+    }
+    out.push(' ');
+  }
+  return out.join('').replace(/\u0000/g,'');
+}
+function decodePdfLiteral(s){
+  return s.replace(/\\([nrtbf()\\])/g, (_,c) => ({n:'\n',r:'\r',t:'\t',b:'\b',f:'\f','(':'(',')':')','\\':'\\'}[c]))
+    .replace(/\\([0-7]{1,3})/g, (_,n) => String.fromCharCode(parseInt(n,8)))
+    .replace(/\\\r?\n/g,'');
+}
 
 /* --------------------------------------------------------------------------
-   Ekspor / impor
+   Pengaturan ujian
    -------------------------------------------------------------------------- */
-function exportBank(){
-  const payload = JSON.stringify(Bank.data, null, 2);
-  const stamp = new Date().toISOString().slice(0, 10);
-  const name = `soal-${(Bank.data.code || 'ujian')}-${stamp}.json`;
-  const blob = new Blob([payload], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast(`Berkas ${name} diunduh.`);
-}
-
-function importBank(file){
-  const reader = new FileReader();
-  reader.onload = () => {
-    try{
-      const parsed = JSON.parse(String(reader.result));
-      if (!parsed || !Array.isArray(parsed.questions)){
-        throw new Error('format');   // bukan bank soal
-      }
-      const clean = normalizeBank(parsed);
-      Bank.data = clean;
-      fillInfoFields();
-      saveAndRenderBank(`${clean.questions.length} soal dimuat dari berkas.`);
-      toast('Bank soal berhasil diimpor.');
-    } catch(_){
-      toast('Berkas tidak dikenali — pastikan itu hasil Ekspor dari aplikasi ini.');
-    }
-  };
-  reader.onerror = () => toast('Berkas gagal dibaca.');
-  reader.readAsText(file);
-}
-
 function fillInfoFields(){
   const d = Bank.data;
   document.getElementById('bi-code').value = d.code || '';
   document.getElementById('bi-title').value = d.title || '';
   document.getElementById('bi-subject').value = d.subject || '';
   document.getElementById('bi-duration').value = String(d.durationMinutes || 90);
+  const gasUrl = document.getElementById('bi-backend-url');
+  if (gasUrl) gasUrl.value = backendUrl();
+  const pin = document.getElementById('bi-backend-pin');
+  if (pin) pin.value = '';
 }
 
 function readInfoFields(){
@@ -2985,8 +3465,10 @@ function setupInstallPrompt(){
   window.Storage = Storage;
   window.evaluateTransition = evaluateTransition;
   window.Bank = Bank;          // untuk inspeksi & pengujian
-  window.Form = Form;
   window.normalizeBank = normalizeBank;
+  window.DocumentImport = DocumentImport;
+  window.parseExamDocument = parseExamDocument;
+  window.unzipEntries = unzipEntries;
   window.mockSessionPayload = mockSessionPayload;
 })();
 </script>
