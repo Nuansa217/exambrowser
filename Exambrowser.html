@@ -398,11 +398,15 @@ body{padding-bottom:34px}
       <p class="small center">Belum punya identitas? Hubungi pengawas ujian Anda.</p>
 
       <div class="credit" role="contentinfo">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"/><path d="M14.8 9.3a3.6 3.6 0 100 5.4"/>
-        </svg>
-        <span>2026 design By Agus Eka Saputera</span>
+        <div class="rule" aria-hidden="true"></div>
+        <div class="line">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+            <circle cx="12" cy="12" r="9.25"/><path d="M14.9 8.6a4.1 4.1 0 100 6.8"/>
+          </svg>
+          <span>Copyright 2026</span>
+          <span class="by">Design By Agus Eka Saputera</span>
+        </div>
+        <div class="tag">AK-EXAM · UJIAN AMAN &amp; TERKENDALI</div>
       </div>
     </div>
   </div>
@@ -719,6 +723,122 @@ body{padding-bottom:34px}
 }
 #btn-mark-review.is-on{
   background:#FFF2D9; border-color:#D98200; color:#9A5A00; font-weight:600;
+}
+
+/* --- kredit pengembang di layar login --- */
+.credit{
+  margin-top:var(--xxl); padding-top:var(--lg); text-align:center;
+}
+.credit .rule{
+  width:240px; max-width:70%; margin:0 auto var(--md);
+  border:0; height:1px;
+  background:linear-gradient(90deg, transparent, var(--border-strong), transparent);
+}
+.credit .line{
+  font-size:12.5px; font-weight:650; letter-spacing:.14em;
+  background:linear-gradient(90deg,#8B3A4A,#C0392B 35%,#2457C4 65%,#12367F);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  display:inline-flex; align-items:center; gap:7px; justify-content:center;
+  line-height:1.7;
+}
+.credit .line svg{width:13px; height:13px; color:#C0392B; flex:none}
+.credit .by{letter-spacing:.05em; font-weight:700}
+.credit .tag{margin-top:7px; font-size:11px; letter-spacing:.18em; color:var(--text-tertiary)}
+
+/* --- latar login: gradasi biru-merah pada mode terang --- */
+#s-login{
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(36,87,196,.16), transparent 62%),
+    radial-gradient(920px 480px at 96% 8%, rgba(192,57,43,.14), transparent 60%),
+    radial-gradient(760px 620px at 78% 104%, rgba(36,87,196,.10), transparent 58%),
+    linear-gradient(165deg,#F5F8FD 0%,#FBF6F6 46%,#F2F6FE 100%);
+}
+#s-login .glyph{box-shadow:0 12px 30px rgba(28,63,140,.22), 0 4px 12px rgba(150,40,40,.14)}
+
+/* --- theme toggle --- */
+.appbar .theme-btn{
+  width:36px; height:36px; flex:none; display:grid; place-items:center;
+  border-radius:999px; border:1px solid var(--border);
+  background:var(--surface); color:var(--text-secondary); cursor:pointer;
+  padding:0;
+}
+.appbar .theme-btn:hover{background:var(--sunken); color:var(--text-primary)}
+.appbar .theme-btn svg{width:19px; height:19px}
+.appbar .theme-btn .ic-moon{display:none}
+.theme-btn.theme-float{
+  position:fixed; right:14px;
+  top:calc(12px + env(safe-area-inset-top, 0px));
+  z-index:55;
+}
+
+/* --- token mode gelap --- */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --primary:#8FB0E8; --primary-dark:#B3C9F2; --primary-light:#5E86CC;
+  --on-primary:#0E1520;
+  --accent:#39B7C2; --on-accent:#08252A;
+  --success:#5BC489; --success-surface:#153426;
+  --warning:#E5A33F; --warning-surface:#3B2B0E;
+  --danger:#F0726A; --danger-surface:#3A1B1A;
+  --info:#79A8EA; --info-surface:#152B46;
+  --surface:#161E2A; --background:#0E1420; --sunken:#1D2733;
+  --text-primary:#EDF1F7; --text-secondary:#A2AEBC; --text-tertiary:#7B8797;
+  --border:#2B3646; --border-strong:#3C4A5C; --divider:#242F3D;
+  --shadow-low:0 1px 2px rgba(0,0,0,.4), 0 1px 3px rgba(0,0,0,.28);
+  --shadow-high:0 12px 32px rgba(0,0,0,.5), 0 4px 8px rgba(0,0,0,.3);
+}
+:root[data-theme="dark"] body{background:var(--background)}
+:root[data-theme="dark"] .screen:not(#s-login){background:var(--background)}
+:root[data-theme="dark"] #s-login{
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(56,104,214,.24), transparent 62%),
+    radial-gradient(920px 480px at 96% 8%, rgba(192,57,43,.18), transparent 60%),
+    radial-gradient(760px 620px at 78% 104%, rgba(56,104,214,.14), transparent 58%),
+    linear-gradient(165deg,#0F1726 0%,#151A2B 46%,#0E1729 100%);
+}
+:root[data-theme="dark"] .glyph{
+  background:#101A2B; border-color:#29384C; color:#EDF1F7;
+}
+:root[data-theme="dark"] #s-login .glyph{
+  box-shadow:0 12px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(94,134,204,.28);
+}
+:root[data-theme="dark"] .credit .line{
+  background:linear-gradient(90deg,#D98A86,#EE8579 35%,#91B4F2 65%,#7298E0);
+  -webkit-background-clip:text; background-clip:text;
+}
+:root[data-theme="dark"] .credit .line svg{color:#EE8579}
+:root[data-theme="dark"] .credit .tag{color:var(--text-tertiary)}
+:root[data-theme="dark"] .appbar .theme-btn .ic-sun{display:none}
+:root[data-theme="dark"] .appbar .theme-btn .ic-moon{display:block}
+:root[data-theme="dark"] .done-badge svg{color:var(--success)}
+:root[data-theme="dark"] .testbar{background:#080D16; color:#98A6B6}
+:root[data-theme="dark"] .testbar b{color:var(--text-primary)}
+:root[data-theme="dark"] .iconbtn.danger{color:#F0726A; border-color:#3A2626}
+:root[data-theme="dark"] .banner.info{background:var(--info-surface); color:#CFE1FA; border-color:#25405F}
+:root[data-theme="dark"] .banner.info .ic{color:#91B4F2}
+:root[data-theme="dark"] .banner.danger{background:var(--danger-surface); color:#F6B4AF; border-color:#573030}
+:root[data-theme="dark"] .banner.danger .ic{color:#F0726A}
+:root[data-theme="dark"] .banner.warning{background:var(--warning-surface); color:#F2CE8E; border-color:#54401D}
+:root[data-theme="dark"] .banner.warning .ic{color:#E5A33F}
+:root[data-theme="dark"] .banner.success{background:var(--success-surface); color:#9FE3BE; border-color:#22523A}
+:root[data-theme="dark"] .banner.success .ic{color:#5BC489}
+:root[data-theme="dark"] .chip.info{background:#1B3250; color:#A9C6F2}
+:root[data-theme="dark"] .chip.warning{background:#3B2B0E; color:#F2CE8E}
+:root[data-theme="dark"] .chip.success{background:#153426; color:#9FE3BE}
+:root[data-theme="dark"] .chip.danger{background:#3A1B1A; color:#F6B4AF}
+:root[data-theme="dark"] .opt.is-selected{background:#17263C; border-color:#5E86CC}
+:root[data-theme="dark"] .qs-btn.is-answered{background:#1F7A48; border-color:#1F7A48; color:#EDF1F7}
+:root[data-theme="dark"] .qs-btn.is-review{background:#8A5710; border-color:#8A5710; color:#EDF1F7}
+:root[data-theme="dark"] .qs-btn.is-answered.is-review{border-color:#5A5540}
+:root[data-theme="dark"] #btn-mark-review.is-on{background:#3B2B0E; border-color:#8A5710; color:#F2CE8E}
+:root[data-theme="dark"] .btn-secondary{background:var(--surface); color:var(--primary); border-color:var(--border-strong)}
+:root[data-theme="dark"] .field-error{color:#F6B4AF}
+:root[data-theme="dark"] .field.has-error .input, :root[data-theme="dark"] .input.has-error{border-color:#8C3630}
+:root[data-theme="dark"] .banner.success{background:var(--success-surface)}
+
+/* transisi halus tanpa membuat lompatan pada perubahan layar */
+@media (prefers-reduced-motion:no-preference){
+  body, .screen, .appbar, .card, .input, .btn, .opt, .chip{transition:background-color .18s ease, border-color .18s ease, color .18s ease}
 }
 .empty{
   border:1.5px dashed var(--border-strong); border-radius:var(--radius-lg);
@@ -2259,6 +2379,84 @@ function toast(msg){
 }
 
 /* --------------------------------------------------------------------------
+   TEMA — mode terang / mode gelap
+   -------------------------------------------------------------------------- */
+const THEME_KEY = 'exambrowser.theme';
+const Theme = {
+  current: 'light',
+  init(){
+    let saved = null;
+    try{ saved = localStorage.getItem(THEME_KEY); } catch(_){ saved = null; }
+    this.apply(saved === 'dark' || saved === 'light' ? saved : this.preferred());
+    this.injectToggles();
+  },
+
+  /** Ikuti preferensi sistem pada pembukaan pertama. */
+  preferred(){
+    try{
+      if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    } catch(_){}
+    return 'light';
+  },
+
+  apply(theme){
+    this.current = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', this.current);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', this.current === 'dark' ? '#0E1420' : '#1B3A6B');
+    document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
+      const dark = this.current === 'dark';
+      btn.setAttribute('aria-label', dark ? 'Aktifkan mode terang' : 'Aktifkan mode gelap');
+      btn.setAttribute('title', dark ? 'Mode terang' : 'Mode gelap');
+      btn.setAttribute('aria-pressed', String(dark));
+    });
+    try{ localStorage.setItem(THEME_KEY, this.current); } catch(_){ /* memori saja */ }
+  },
+
+  toggle(){ this.apply(this.current === 'dark' ? 'light' : 'dark'); },
+
+  /* Satu tombol di layar luar (login/selesai/pelanggaran) dan satu di tiap appbar. */
+  injectToggles(){
+    const sun = '<svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+    const moon = '<svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.2 15.2A8.5 8.5 0 018.8 3.8 8.6 8.6 0 1020.2 15.2Z"/></svg>';
+
+    // Tombol melayang untuk layar tanpa appbar.
+    if (!document.getElementById('theme-float')){
+      const float = document.createElement('button');
+      float.type = 'button';
+      float.className = 'theme-btn theme-float';
+      float.id = 'theme-float';
+      float.setAttribute('data-theme-toggle', '');
+      float.innerHTML = sun + moon;
+      document.body.appendChild(float);
+    }
+
+    // Tombol pada tiap appbar, diselipkan setelah judul.
+    document.querySelectorAll('.appbar h1').forEach(h1 => {
+      const bar = h1.closest('.appbar');
+      if (bar && !bar.querySelector('[data-theme-toggle]')){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'theme-btn';
+        btn.setAttribute('data-theme-toggle', '');
+        btn.innerHTML = sun + moon;
+        h1.after(btn);
+      }
+    });
+  },
+};
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest && e.target.closest('[data-theme-toggle]');
+  if (!btn) return;
+  EventLog.info('app', 'theme_changed', {data:{theme:Theme.current === 'dark' ? 'light' : 'dark'}});
+  Theme.toggle();
+});
+
+// Terapkan tema secepat mungkin agar layar tidak berkedip terang lalu gelap.
+Theme.init();
+
+/* --------------------------------------------------------------------------
    IKAT PERISTIWA
    -------------------------------------------------------------------------- */
 const _code = document.getElementById('f-code');
@@ -2710,6 +2908,7 @@ function setupInstallPrompt(){
   window.Bank = Bank;          // untuk inspeksi & pengujian
   window.normalizeBank = normalizeBank;
   window.mockSessionPayload = mockSessionPayload;
+  window.Theme = Theme;
 })();
 </script>
 </body>
