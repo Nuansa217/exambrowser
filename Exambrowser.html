@@ -397,6 +397,21 @@ body{padding-bottom:34px}
       <button class="btn btn-primary" id="btn-login">Masuk</button>
       <p class="small center">Belum punya identitas? Hubungi pengawas ujian Anda.</p>
 
+      <!-- Pengaturan pengawas: hanya dibuka pengawas, bukan peserta. -->
+      <details class="setup" id="backend-setup">
+        <summary>Pengaturan pengawas (opsional)</summary>
+        <div class="field">
+          <label class="label" for="login-backend-url">URL Backend GAS</label>
+          <input class="input" id="login-backend-url" type="url" inputmode="url"
+                 placeholder="https://script.google.com/macros/s/.../exec" autocomplete="url"
+                 spellcheck="false">
+          <p class="hint" id="login-backend-hint">Isi URL web app GAS agar hasil ujian terkirim
+             ke Google Sheets. Kosongkan untuk ujian lokal.</p>
+        </div>
+        <button class="btn btn-secondary" type="button" id="btn-save-backend">Simpan URL</button>
+        <p class="small" id="login-backend-note" aria-live="polite" hidden></p>
+      </details>
+
       <div class="credit" role="contentinfo">
         <div class="rule" aria-hidden="true"></div>
         <div class="line">
@@ -724,6 +739,23 @@ body{padding-bottom:34px}
 #btn-mark-review.is-on{
   background:#FFF2D9; border-color:#D98200; color:#9A5A00; font-weight:600;
 }
+
+/* --- pengaturan pengawas di layar login (terlipat) --- */
+.setup{
+  margin-top:var(--md); padding:var(--sm) var(--md) var(--md);
+  background:var(--surface); border:1px dashed var(--border-strong);
+  border-radius:var(--radius-md);
+}
+.setup summary{
+  cursor:pointer; font-size:13px; font-weight:650; color:var(--text-secondary);
+  list-style:none; user-select:none; padding:var(--xs) 0;
+}
+.setup summary::-webkit-details-marker{display:none}
+.setup summary::before{content:'▸ '; color:var(--text-tertiary)}
+.setup[open] summary::before{content:'▾ '}
+.setup summary:hover{color:var(--text-primary)}
+.setup .hint{margin-top:var(--xs)}
+.setup .btn{margin-top:var(--sm)}
 
 /* --- kredit pengembang di layar login --- */
 .credit{
@@ -2475,6 +2507,32 @@ function clearLoginError(){
 document.getElementById('f-identity').addEventListener('input', clearLoginError);
 document.getElementById('f-password').addEventListener('input', clearLoginError);
 
+/* ---- Pengaturan pengawas di layar login: URL backend ---- */
+function fillBackendField(){
+  const input = document.getElementById('login-backend-url');
+  if (input) input.value = backendUrl();
+  const note = document.getElementById('login-backend-note');
+  if (note){
+    const url = backendUrl();
+    note.hidden = false;
+    note.style.color = url ? 'var(--success)' : 'var(--text-secondary)';
+    note.textContent = url
+      ? 'Terhubung ke backend. Jawaban siswa akan dikirim ke Google Sheets.'
+      : 'Belum ada URL backend — hasil ujian hanya tersimpan di perangkat ini.';
+  }
+}
+/* Catatan: fillBackendField() dipanggil dari boot() setelah modul
+   penyimpanan dan konstanta backend siap, bukan di sini. */
+
+document.getElementById('btn-save-backend')?.addEventListener('click', () => {
+  const input = document.getElementById('login-backend-url');
+  const url = setBackendUrl(input ? input.value : '');
+  if (input) input.value = url;
+  fillBackendField();
+  EventLog.info('app', 'backend_url_set', {data:{configured:!!url}});
+  toast(url ? 'URL backend tersimpan di perangkat ini.' : 'URL backend dikosongkan.');
+});
+
 /* ---- Impor / library soal hanya berada di Pengawas.html ---- */
 
 document.getElementById('btn-login').addEventListener('click', async () => {
@@ -2886,6 +2944,9 @@ function setupInstallPrompt(){
   Bank.load();                 // siapkan soal sebelum ada permintaan validasi
   App._syncPhase();
   App._renderConnection();
+
+  // Isi field pengaturan pengawas di layar login (backendUrl baru siap di sini).
+  fillBackendField();
 
   const restored = await App.restore();
   if (restored && App.session){
