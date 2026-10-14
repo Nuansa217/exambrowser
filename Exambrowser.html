@@ -1245,6 +1245,21 @@ const ApiClient = {
     return {ok:true};
   },
 
+  /**
+   * Verifikasi nomor peserta & kata sandi terhadap backend.
+   *
+   * POST tidak dapat dibaca dari file://, jadi id hasil dibuat di klien lalu
+   * dibaca kembali lewat endpoint JSONP loginResult.
+   */
+  async login(identity, password){
+    const base = backendUrl();
+    if (!base) return {local:true, identity:String(identity || '').trim()};
+    const loginId = 'l-' + _uuid().replace(/-/g, '');
+    await this._post({action:'login', loginId, identity, password});
+    const result = await this._jsonp('loginResult', {loginId});
+    return result || {};
+  },
+
   async _registerExam(){
     if (!backendUrl()) return {registered:false, local:true};
     const pinEl = document.getElementById('bi-backend-pin');
@@ -1273,6 +1288,9 @@ const ApiClient = {
     }
     const bankCode = Bank.data ? Bank.data.code : DEMO_BANK.code;
     if (code !== bankCode){
+      // Ujian lain mungkin tersedia di daftar library lokal pengawas.
+      const alt = findLocalExam_(code);
+      if (alt) return mockSessionPayload(code, {bank: alt});
       const err = new Error('Kode ujian tidak ditemukan atau sudah tidak berlaku.');
       err.kind = 'rejected'; err.code = 'exam_code_not_found'; err.status = 404; err.retryable = false; throw err;
     }
@@ -1349,10 +1367,27 @@ function backendSessionPayload(code, info){
   };
 }
 
+function findLocalExam_(code){
+  const wanted = String(code || '').toUpperCase();
+  let library = null;
+  try{
+    const raw = localStorage.getItem('exambrowser.library');
+    if (raw) library = JSON.parse(raw);
+  } catch(_){ library = null; }
+  const exams = library && Array.isArray(library.exams) ? library.exams : [];
+  for (const exam of exams){
+    if (String(exam.code || '').toUpperCase() === wanted &&
+        Array.isArray(exam.questions) && exam.questions.length){
+      return normalizeBank(exam);
+    }
+  }
+  return null;
+}
+
 function mockSessionPayload(code, options = {}){
-  // Soal & metadata diambil dari bank yang dibuat pengguna bila ada,
-  // kalau tidak memakai contoh bawaan.
-  const bank = (typeof Bank !== 'undefined' && Bank.data) ? Bank.data : DEMO_BANK;
+  // Soal & metadata diambil dari ujian yang dipanggil, atau bank aktif.
+  const bank = options.bank ||
+    ((typeof Bank !== 'undefined' && Bank.data) ? Bank.data : DEMO_BANK);
   const now = new Date();
   const minutes = clamp(Number(bank.durationMinutes) || 90, 1, 480);
   const ends = new Date(now.getTime() + minutes * 60 * 1000);
@@ -2551,15 +2586,32 @@ document.getElementById('btn-login').addEventListener('click', async () => {
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Masuk…';
-  // Endpoint login disambungkan pada tahap backend berikutnya.
-  await new Promise(r => setTimeout(r, 450));
-  btn.disabled = false;
-  btn.textContent = 'Masuk';
-  EventLog.info('session', 'login_success', {data:{identity:len(id)}});
-  App.loginIdentity = id;
-  App.route = 'code';
-  App.go('code');
-  _code.focus();
+  try{
+    // Bila URL backend terisi, nomor peserta & kata sandi diverifikasi ke server.
+    const result = await ApiClient.login(id, pw);
+    btn.disabled = false;
+    btn.textContent = 'Masuk';
+
+    if (result && result.local){
+      EventLog.info('session', 'login_success', {data:{identity:len(id), mode:'lokal'}});
+    } else {
+      EventLog.info('session', 'login_success', {data:{identity:len(result.identity), mode:'backend'}});
+    }
+    App.loginIdentity = String(result.identity || id);
+
+    App.route = 'code';
+    App.go('code');
+    _code.focus();
+  } catch(e){
+    btn.disabled = false;
+    btn.textContent = 'Masuk';
+    const reason = e && e.kind ? e.kind : 'unknown';
+    msg.textContent = e && e.message
+      ? String(e.message)
+      : 'Nomor peserta atau kata sandi tidak sesuai.';
+    box.hidden = false;
+    EventLog.warn('session', 'login_rejected', {data:{reason}});
+  }
 });
 
 function len(v){ return v ? String(v).length : 0; }
